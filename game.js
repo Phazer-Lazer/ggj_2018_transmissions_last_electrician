@@ -56,19 +56,19 @@ function update() {
 
   if (cursors.left.isDown){//  Move to the left
     player.body.velocity.x = -PLAYER.SPEED;
-    player.angle = -90;
+    player.angle = PLAYER.DIR_LEFT;
   }
   else if (cursors.right.isDown){//  Move to the right
     player.body.velocity.x = PLAYER.SPEED;
-    player.angle = 90;
+    player.angle = PLAYER.DIR_RIGHT;
   }
   else if (cursors.up.isDown){//  Move to the left
     player.body.velocity.y = -PLAYER.SPEED;
-    player.angle = 0;
+    player.angle = PLAYER.DIR_UP;
   }
   else if (cursors.down.isDown){//  Move to the right 
     player.body.velocity.y = PLAYER.SPEED;
-    player.angle = 180;
+    player.angle = PLAYER.DIR_DOWN;
   }
       
 }
