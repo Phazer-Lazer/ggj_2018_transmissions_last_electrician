@@ -10,7 +10,7 @@ let playerInventory = {
     'carried': false
   },
   {
-    'name': 'battery1',
+    'name': 'battery2',
     'carried': false
   }
 ]
@@ -48,10 +48,22 @@ const pickupBattery = (player, battery) => {
 
 const interactTerminal = (player, terminal) => {
   // If player has battery, deliver battery.
-  if(playerInventory.batteries.find(x => x.name === terminal.name).carried){
-    setInventoryItem(terminal.name, false);
+  if(playerInventory.batteries.find(x => x.name === terminal.activator).carried){
+    setInventoryItem(terminal.activator, false);
+    console.log('Delivered');
   }
   
+};
+
+const createBattery = (x, y, name) => {
+  const battery = batteries.create(x, y, 'wall');
+  battery.name = name;
+};
+
+const createTerminal = (x, y, name) => {
+  const terminal = terminals.create(x, y, 'path');
+  terminal.body.immovable = true;
+  terminal.activator = name;
 };
 
 function preload() {
@@ -76,15 +88,12 @@ function create() {
   /*
   Create Objects in Groups
   */
-  const battery1 = batteries.create(200, 500, 'wall');
-  battery1.name = "battery1";
-  // const battery2 = batteries.create(200, 300, 'wall');
-  // battery2.name = "battery2";
+  createBattery(200, 500, "battery1");
+  createBattery(200, 300, "battery2");
 
-  const terminal = terminals.create(150, 500, 'path');
-  terminal.body.immovable = true;
-  // Terminal needs the same name as the battery to be deliverable
-  terminal.name = "battery1";
+  createTerminal(150, 500, "battery1");
+  createTerminal(150, 350, "battery2");
+
   
   /*
   Create Player
