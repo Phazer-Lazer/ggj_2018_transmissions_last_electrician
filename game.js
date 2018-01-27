@@ -57,6 +57,10 @@ const isCarried = (name) => {
   return playerInventory.batteries.find(x => x.name === name).carried;
 };
 
+const isDelivered = (name) => {
+  return playerInventory.batteries.find(x => x.name === name).delivered;
+};
+
 const interactTerminal = (player, terminal) => {
   // If player has battery, deliver battery.
   if(isCarried(terminal.activator)){
@@ -64,7 +68,7 @@ const interactTerminal = (player, terminal) => {
     deliverObject(terminal.activator);
     // Set termainl image to activated
     terminal.loadTexture('wall');
-  } else { // Else, if the player is delivering a battery to the wrong terminal, shock them.
+  } else if(!isDelivered(terminal.activator)){ // Else, if the player is delivering a battery to the wrong terminal, shock them.
     console.log('shock');
   }
   
