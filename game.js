@@ -3,6 +3,10 @@
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
+let playerInventory = {
+  battery: false
+};
+
 const game = new Phaser.Game(1280, 720, Phaser.AUTO, '', {
   preload,
   create,
@@ -12,21 +16,38 @@ const game = new Phaser.Game(1280, 720, Phaser.AUTO, '', {
 let level = 1;
 let currentLevel = level;
 
-let player, cursors;
+let player, cursors, batteries;
 
 
 
 function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
-  game.load.image('dwarf', 'assets/dwarf.png');
 }
 
 function create() {
-  player = game.add.sprite(32, game.world.height - 150, 'dwarf');
+  
+  /* 
+    Add Groups
+  */
+  batteries = game.add.group();
+  batteries.enableBody = true;
+  
+  /*
+    Create Objects in Groups
+  */
+  const battery = batteries.create(200, 500, 'wall');
+  
+  /*
+    Create Player
+  */
+  player = game.add.sprite(32, game.world.height - 150, 'our_hero');
+  player.animations.add("walk", [0, 1, 2, 3], 10, true);
+  
 }
 
-let disableScrollbar = () => {
+const disableScrollbar = () => {
   window.addEventListener("keydown", function(e) {
     if(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(e.key) > -1) {
         e.preventDefault();
@@ -34,12 +55,33 @@ let disableScrollbar = () => {
   }, false);
 };
 
-function update() {
-  game.physics.arcade.enable(player);
-  cursors = game.input.keyboard.createCursorKeys();
-      
-  const currentUpdateFunctionName = `level${currentLevel}Update`;
+const pickupBattery = (player, battery) => {
+  console.log('Picked up Battery');
+  battery.kill();
+  playerInventory.battery = true;
+  console.log('playerInventory.battery', playerInventory.battery);
+  console.log('batter', battery);
+};
 
+function update() {
+  // Initialize cursor to listen to keyboard input
+  cursors = game.input.keyboard.createCursorKeys();
+
+
+  
+
+
+  /*
+    Add Physics
+  */
+  game.physics.arcade.enable(player);
+  game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
+
+
+
+      
+  // World Manager Creating Map
+  const currentUpdateFunctionName = `level${currentLevel}Update`;
   WorldManager[currentUpdateFunctionName]();
 
   const PLAYER = PlayerManager;
@@ -57,18 +99,24 @@ function update() {
   if (cursors.left.isDown){//  Move to the left
     player.body.velocity.x = -PLAYER.SPEED;
     player.angle = PLAYER.DIR_LEFT;
+    player.animations.play('walk');
   }
   else if (cursors.right.isDown){//  Move to the right
     player.body.velocity.x = PLAYER.SPEED;
     player.angle = PLAYER.DIR_RIGHT;
+    player.animations.play('walk');
   }
   else if (cursors.up.isDown){//  Move to the left
     player.body.velocity.y = -PLAYER.SPEED;
     player.angle = PLAYER.DIR_UP;
+    player.animations.play('walk');
   }
   else if (cursors.down.isDown){//  Move to the right 
     player.body.velocity.y = PLAYER.SPEED;
     player.angle = PLAYER.DIR_DOWN;
+    player.animations.play('walk');
+  } else {
+    player.animations.stop();
   }
       
 }

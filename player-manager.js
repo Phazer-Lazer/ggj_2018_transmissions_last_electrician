@@ -1,10 +1,10 @@
 const PlayerManager = (function () {
     return {
-      SPEED: 200,
-      DIR_DOWN: 180,
-      DIR_UP: 0,
-      DIR_LEFT: -90,
-      DIR_RIGHT: 90
+      SPEED: 150,
+      DIR_DOWN: 90,
+      DIR_UP: -90,
+      DIR_LEFT: -180,
+      DIR_RIGHT: 0
     };
 })();
   
