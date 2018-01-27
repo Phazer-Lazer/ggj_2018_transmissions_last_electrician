@@ -3,7 +3,7 @@
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
-const game = new Phaser.Game(1280, 720, Phaser.AUTO, '', {
+const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   preload,
   create,
   update,

@@ -1,6 +1,6 @@
 const WorldManager = (function () {
   return {
-    levelHeight: 24,
+    levelHeight: 22,
     levelWidth: 40,
     level1Update() {
       let walls = game.add.group();
@@ -8,20 +8,20 @@ const WorldManager = (function () {
       let wall;
 
       //vertical border walls
-      for(let w = 0; w < 24; w++){
+      for(let w = 0; w < this.levelHeight; w++){
         //left border
         wall = walls.create(0, TILE_HEIGHT * w, 'wall');
         //right border
-        wall = walls.create(1280-TILE_WIDTH, TILE_HEIGHT * w, 'wall');
+        wall = walls.create(game.world.width-TILE_WIDTH, TILE_HEIGHT * w, 'wall');
         wall.body.immovable = true;
       }
 
       //horizontal border walls
-      for(let w = 0; w < 40; w++){
+      for(let w = 0; w < this.levelWidth; w++){
         //top border
         wall = walls.create(TILE_WIDTH * w, 0, 'wall');
         //bottom border
-        wall = walls.create(TILE_WIDTH * w, 720-TILE_HEIGHT, 'wall');
+        wall = walls.create(TILE_WIDTH * w, game.world.height-TILE_HEIGHT, 'wall');
         wall.body.immovable = true;
       }
 
@@ -60,8 +60,6 @@ const WorldManager = (function () {
           path.body.immovable = true;
         }
       };
-
-
 
     },
   };
