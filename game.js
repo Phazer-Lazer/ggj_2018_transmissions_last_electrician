@@ -167,6 +167,9 @@ function create() {
 
 function update() {
 
+  if(isLevelComplete()){
+    console.log('Victory!');
+  }
 
   /*
   Add Physics
