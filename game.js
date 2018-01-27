@@ -45,22 +45,28 @@ function update() {
    // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
    disableScrollbar();
 
-  
+  // Reset player velocity in each direction so you can't move on angles
+  player.body.velocity.x = 0;
+  player.body.velocity.y = 0;
+
+  // Set player anchor to center rotation
+  player.anchor.setTo(0.5, 0.5);
+
   if (cursors.left.isDown){//  Move to the left
     player.body.velocity.x = -PLAYER.SPEED;
+    player.angle = -90;
   }
   else if (cursors.right.isDown){//  Move to the right
     player.body.velocity.x = PLAYER.SPEED;
+    player.angle = 90;
   }
   else if (cursors.up.isDown){//  Move to the left
     player.body.velocity.y = -PLAYER.SPEED;
+    player.angle = 0;
   }
   else if (cursors.down.isDown){//  Move to the right 
     player.body.velocity.y = PLAYER.SPEED;
-  }
-  else {
-    player.body.velocity.x = 0;
-    player.body.velocity.y = 0;
+    player.angle = 180;
   }
       
 }
