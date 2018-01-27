@@ -84,38 +84,38 @@ const WorldManager = (function () {
         this.hPath(19, TILE_WIDTH, i * TILE_HEIGHT);
       }
 
-      this.hPath(4, TILE_WIDTH, (this.levelHeight-10)*TILE_HEIGHT);
+      //builds paths next to horizontal wall on left
+      this.hPath(4, TILE_WIDTH, TILE_HEIGHT*12);
+      this.hPath(5, TILE_WIDTH*15, TILE_HEIGHT*12);
 
-      this.hPath(5, TILE_WIDTH*15, (this.levelHeight-10)*TILE_HEIGHT);
       //build path bottom left
       for(let i =1; i < 9; i++){
-        this.hPath(19, TILE_WIDTH, (i+(this.levelHeight-10)) * TILE_HEIGHT);
+        this.hPath(19, TILE_WIDTH, (i+12) * TILE_HEIGHT);
       }
 
       //builds path on the right
-      for(let i =1; i < this.levelHeight - 1; i++){
-        this.hPath(7, (TILE_WIDTH*(this.levelWidth-8)), i * TILE_HEIGHT);
+      for(let i =1; i < 21; i++){
+        this.hPath(7, TILE_WIDTH*32, i * TILE_HEIGHT);
       }
+
+      //builds path between the two vertical walls
+      this.vPath(4, TILE_WIDTH*20, TILE_HEIGHT*11);
 
       //builds path above horizontal wall toward the top
       for(let i =0; i < 2; i++){
-        this.hPath(12, (TILE_WIDTH*(this.levelWidth-20)), ((i + 1)* TILE_HEIGHT));
+        this.hPath(12, TILE_WIDTH*20, ((i + 1)* TILE_HEIGHT));
       }
       //builds path under horizontal wall toward the top
       for(let i =0; i < 11; i++){
-        this.hPath(11, (TILE_WIDTH*(this.levelWidth-19)), ((i + 4)* TILE_HEIGHT));
+        this.hPath(11, TILE_WIDTH*21, ((i + 4)* TILE_HEIGHT));
       }
       
-
       //builds path under horizontal wall toward the bottom
-      this.hPath(3, TILE_WIDTH*(this.levelWidth-11), (this.levelHeight-7)*TILE_HEIGHT);
+      this.hPath(3, TILE_WIDTH*29, TILE_HEIGHT*15);
 
       for(let i =0; i < 5; i++){
-        this.hPath(11, (TILE_WIDTH*(this.levelWidth-19)), ((i + (this.levelHeight-6))* TILE_HEIGHT));
+        this.hPath(11, TILE_WIDTH*21, ((i + (this.levelHeight-6))* TILE_HEIGHT));
       }
-
-
-
 
     },
   };

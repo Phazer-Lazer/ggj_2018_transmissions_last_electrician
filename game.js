@@ -131,7 +131,7 @@ function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
-  game.load.spritesheet('battery', 'assets/battery.png', 64, 64);
+  game.load.spritesheet('battery', 'assets/battery_glow.png', 64, 64);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.image('terminalOn', 'assets/terminal_on.png');
 }
