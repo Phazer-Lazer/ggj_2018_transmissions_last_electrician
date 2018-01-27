@@ -12,17 +12,57 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 let level = 1;
 let currentLevel = level;
 
+let player, cursors;
+
+
+
 function preload() {
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
+  game.load.image('dwarf', 'assets/dwarf.png');
 }
 
 function create() {
-
+  player = game.add.sprite(32, game.world.height - 150, 'dwarf');
 }
 
+let disableScrollbar = () => {
+  window.addEventListener("keydown", function(e) {
+    if(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(e.key) > -1) {
+        e.preventDefault();
+    }
+  }, false);
+};
+
 function update() {
+  game.physics.arcade.enable(player);
+  cursors = game.input.keyboard.createCursorKeys();
+      
   const currentUpdateFunctionName = `level${currentLevel}Update`;
 
   WorldManager[currentUpdateFunctionName]();
+
+  const PLAYER = PlayerManager;
+
+   // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
+   disableScrollbar();
+
+  
+  if (cursors.left.isDown){//  Move to the left
+    player.body.velocity.x = -PLAYER.SPEED;
+  }
+  else if (cursors.right.isDown){//  Move to the right
+    player.body.velocity.x = PLAYER.SPEED;
+  }
+  else if (cursors.up.isDown){//  Move to the left
+    player.body.velocity.y = -PLAYER.SPEED;
+  }
+  else if (cursors.down.isDown){//  Move to the right 
+    player.body.velocity.y = PLAYER.SPEED;
+  }
+  else {
+    player.body.velocity.x = 0;
+    player.body.velocity.y = 0;
+  }
+      
 }
