@@ -62,9 +62,10 @@ const interactTerminal = (player, terminal) => {
   if(isCarried(terminal.activator)){
     carryObject(terminal.activator, false);
     deliverObject(terminal.activator);
-
     // Set termainl image to activated
     terminal.loadTexture('wall');
+  } else { // Else, if the player is delivering a battery to the wrong terminal, shock them.
+    console.log('shock');
   }
   
 };
@@ -72,6 +73,19 @@ const interactTerminal = (player, terminal) => {
 const createBattery = (x, y, name) => {
   const battery = batteries.create(x, y, 'wall');
   battery.name = name;
+};
+
+// Return true if all batteries are delivered
+const isLevelComplete = () => {
+  let batteryArray = playerInventory.batteries;
+  let batteriesDelivered = 0;
+  // if a battery is delivered, att to delivered, then check if all batteries have been delivered to trigger a win condition.
+
+  for(let i = 0; i < batteryArray.length; i++){
+    if(batteryArray[i].delivered) batteriesDelivered ++;
+  }
+
+  return batteriesDelivered === batteryArray.length;
 };
 
 const createTerminal = (x, y, activator) => {
@@ -122,6 +136,9 @@ function create() {
 
 function update() {
   
+  if(isLevelComplete()){
+    console.log('Victory!');
+  }
   
   /*
   Add Physics
