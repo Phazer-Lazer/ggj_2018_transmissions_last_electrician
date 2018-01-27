@@ -1,4 +1,5 @@
 'use strict';
+
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
@@ -22,5 +23,6 @@ function create() {
 
 function update() {
   const currentUpdateFunctionName = `level${currentLevel}Update`;
+
   WorldManager[currentUpdateFunctionName]();
 }
