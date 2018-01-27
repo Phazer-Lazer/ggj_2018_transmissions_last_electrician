@@ -56,12 +56,12 @@ const interactTerminal = (player, terminal) => {
 };
 
 const createBattery = (x, y, name) => {
-  const battery = batteries.create(x, y, 'wall');
+  const battery = batteries.create(x, y, 'battery');
   battery.name = name;
 };
 
 const createTerminal = (x, y, name) => {
-  const terminal = terminals.create(x, y, 'path');
+  const terminal = terminals.create(x, y, 'terminal');
   terminal.body.immovable = true;
   terminal.activator = name;
 };
@@ -70,9 +70,15 @@ function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
+  game.load.image('battery', 'assets/battery.png');
+  game.load.image('terminal', 'assets/terminal.png');
 }
 
 function create() {
+  // World Manager Creating Map
+  const currentUpdateFunctionName = `level${currentLevel}Update`;
+  WorldManager[currentUpdateFunctionName]();
+
 
   /*
     Add Groups
@@ -98,6 +104,7 @@ function create() {
   Create Player
   */
   player = game.add.sprite(32, game.world.height - 150, 'our_hero');
+  player.scale.setTo(2, 2);
   game.physics.arcade.enable(player);
   player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
@@ -111,13 +118,6 @@ function update() {
   */
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
-
-
-
-
-  // // World Manager Creating Map
-  // const currentUpdateFunctionName = `level${currentLevel}Update`;
-  // WorldManager[currentUpdateFunctionName]();
 
   const PLAYER = PlayerManager;
 

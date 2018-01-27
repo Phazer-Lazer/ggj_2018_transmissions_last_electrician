@@ -40,11 +40,11 @@ const WorldManager = (function () {
           wall.body.immovable = true;
         }
       };
-      
+
 
       let paths = game.add.group();
       paths.enableBody = true;
-      
+
       //function to create a horizontal path
       function hPath(num, x, y){
         for(let p = 0; p < num; p++){
@@ -61,6 +61,8 @@ const WorldManager = (function () {
         }
       };
 
+      for (let i = 1; i < this.levelHeight - 1; i++ )
+      hPath(this.levelWidth - 2, 1 * TILE_WIDTH, i * TILE_HEIGHT);
     },
   };
 })();
