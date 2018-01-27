@@ -1,4 +1,5 @@
 'use strict';
+
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
@@ -38,6 +39,7 @@ function update() {
   cursors = game.input.keyboard.createCursorKeys();
       
   const currentUpdateFunctionName = `level${currentLevel}Update`;
+
   WorldManager[currentUpdateFunctionName]();
 
   const PLAYER = PlayerManager;
