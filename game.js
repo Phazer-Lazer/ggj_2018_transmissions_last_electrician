@@ -7,11 +7,13 @@ let playerInventory = {
   batteries: [
   {
     'name': 'battery1',
-    'carried': false
+    'carried': false,
+    'delivered': false
   },
   {
     'name': 'battery2',
-    'carried': false
+    'carried': false,
+    'delivered': false
   }
 ]
 };
@@ -27,9 +29,14 @@ let currentLevel = level;
 
 let player, cursors, batteries, terminals;
 
-const setInventoryItem = (name, value) => {
+const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
   object.carried = value;
+};
+
+const deliverObject = (name) => {
+  let object = playerInventory.batteries.find(b => b.name === name);
+  object.delivered = true;
 };
 
 const disableScrollbar = () => {
@@ -43,14 +50,21 @@ const disableScrollbar = () => {
 const pickupBattery = (player, battery) => {
   console.log(battery);
   battery.kill();
-  setInventoryItem(battery.name, true);
+  carryObject(battery.name, true);
+};
+
+const isCarried = (name) => {
+  return playerInventory.batteries.find(x => x.name === name).carried;
 };
 
 const interactTerminal = (player, terminal) => {
   // If player has battery, deliver battery.
-  if(playerInventory.batteries.find(x => x.name === terminal.activator).carried){
-    setInventoryItem(terminal.activator, false);
-    console.log('Delivered');
+  if(isCarried(terminal.activator)){
+    carryObject(terminal.activator, false);
+    deliverObject(terminal.activator);
+
+    // Set termainl image to activated
+    terminal.loadTexture('wall');
   }
   
 };
@@ -60,11 +74,13 @@ const createBattery = (x, y, name) => {
   battery.name = name;
 };
 
-const createTerminal = (x, y, name) => {
+const createTerminal = (x, y, activator) => {
+  // Set termianl image based on wether or not it is delivered.
+
   const terminal = terminals.create(x, y, 'path');
   terminal.body.immovable = true;
-  terminal.activator = name;
-};
+  terminal.activator = activator;
+};    
 
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
