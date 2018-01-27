@@ -1,9 +1,8 @@
-let walls;
-let wall;
-
 let paths;
 let path;
 
+let walls;
+let wall;
 
 const WorldManager = (function () {
   return {
@@ -72,16 +71,51 @@ const WorldManager = (function () {
       paths.enableBody = true;
       
       this.buildBorder();
-      this.hWall(8, 32*6, 32*16);
+      this.hWall(10, TILE_WIDTH*5, TILE_HEIGHT*12);
       
-      this.vWall(9, 32*20, 32*3);
-      this.hWall(12, 32*20, 32*3);
+      this.vWall(9, TILE_WIDTH*20, TILE_HEIGHT*3);
+      this.hWall(12, TILE_WIDTH*20, 32*3);
       
-      this.vWall(8, 32*20, 32*15);
-      this.hWall(8, 32*21, 32*15);
+      this.vWall(8, TILE_WIDTH*20, TILE_HEIGHT*15);
+      this.hWall(8, TILE_WIDTH*21, TILE_HEIGHT*15);
+
+      //builds path top left of screeen
+      for(let i =1; i < 12; i++){
+        this.hPath(19, TILE_WIDTH, i * TILE_HEIGHT);
+      }
+
+      this.hPath(4, TILE_WIDTH, (this.levelHeight-10)*TILE_HEIGHT);
+
+      this.hPath(5, TILE_WIDTH*15, (this.levelHeight-10)*TILE_HEIGHT);
+      //build path bottom left
+      for(let i =1; i < 9; i++){
+        this.hPath(19, TILE_WIDTH, (i+(this.levelHeight-10)) * TILE_HEIGHT);
+      }
+
+      //builds path on the right
+      for(let i =1; i < this.levelHeight - 1; i++){
+        this.hPath(7, (TILE_WIDTH*(this.levelWidth-8)), i * TILE_HEIGHT);
+      }
+
+      //builds path above horizontal wall toward the top
+      for(let i =0; i < 2; i++){
+        this.hPath(12, (TILE_WIDTH*(this.levelWidth-20)), ((i + 1)* TILE_HEIGHT));
+      }
+      //builds path under horizontal wall toward the top
+      for(let i =0; i < 11; i++){
+        this.hPath(11, (TILE_WIDTH*(this.levelWidth-19)), ((i + 4)* TILE_HEIGHT));
+      }
       
-      // for (let i = 1; i < this.levelHeight - 1; i++ )
-      // this.hPath(this.levelWidth - 2, 1 * TILE_WIDTH, i * TILE_HEIGHT);
+
+      //builds path under horizontal wall toward the bottom
+      this.hPath(3, TILE_WIDTH*(this.levelWidth-11), (this.levelHeight-7)*TILE_HEIGHT);
+
+      for(let i =0; i < 5; i++){
+        this.hPath(11, (TILE_WIDTH*(this.levelWidth-19)), ((i + (this.levelHeight-6))* TILE_HEIGHT));
+      }
+
+
+
 
     },
   };

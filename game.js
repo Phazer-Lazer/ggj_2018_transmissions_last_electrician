@@ -63,7 +63,7 @@ const isDelivered = (name) => {
 
 const carryingNothing = () => {
   return playerInventory.batteries.filter((battery) => {
-    console.log(battery.carried);
+    console.log("battery carried", battery.carried);
     return battery.carried
   });
 };
@@ -131,7 +131,7 @@ function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
-  game.load.image('battery', 'assets/battery.png');
+  game.load.spritesheet('battery', 'assets/battery.png', 64, 64);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.image('terminalOn', 'assets/terminal_on.png');
 }
@@ -155,17 +155,18 @@ function create() {
   /*
   Create Objects in Groups
   */
-  createBattery(200, 500, "battery1");
-  createBattery(200, 300, "battery2");
+  createBattery(TILE_HEIGHT * 8, TILE_HEIGHT * 17, "battery1");
 
-  createTerminal(150, 500, "battery1");
-  createTerminal(150, 350, "battery2");
+  createTerminal(TILE_WIDTH * 21, TILE_HEIGHT * 16, "battery1");
+
+
+
 
 
   /*
   Create Player
   */
-  player = game.add.sprite(9 * TILE_HEIGHT, 16 * TILE_WIDTH, 'our_hero');
+  player = game.add.sprite(8 * TILE_HEIGHT, 8 * TILE_WIDTH, 'our_hero');
   player.scale.setTo(2, 2);
   game.physics.arcade.enable(player);
   player.animations.add("walk", [0, 1, 2, 3], 10, true);
