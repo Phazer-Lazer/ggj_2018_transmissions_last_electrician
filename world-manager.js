@@ -25,9 +25,23 @@ const WorldManager = (function () {
         wall = walls.create(block * w, 720-block, 'wall');
         wall.body.immovable = true;
       }
+      
+      //creates a horizontal wall
+      function hWall(num, x, y){
+        for(let w = 0; w < num; w++){
+          wall = walls.create(x + (block * w), y, 'wall');
+          wall.body.immovable = true;
+        }
+      }
 
-      //walls.create(x, y, asset)
-     wall = walls.create(block*2, block*4, 'wall');
+      //creates a vertical wall
+      function vWall(num, x, y){
+        for(let w = 0; w < num; w++){
+          wall = walls.create(x, y + (block * w), 'wall');
+          wall.body.immovable = true;
+        }
+      }
+
 
 
 
