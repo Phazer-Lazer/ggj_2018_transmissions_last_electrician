@@ -47,11 +47,7 @@ const disableScrollbar = () => {
   }, false);
 };
 
-const pickupBattery = (player, battery) => {
-  console.log(battery);
-  battery.kill();
-  carryObject(battery.name, true);
-};
+
 
 const isCarried = (name) => {
   return playerInventory.batteries.find(x => x.name === name).carried;
@@ -61,18 +57,27 @@ const isDelivered = (name) => {
   return playerInventory.batteries.find(x => x.name === name).delivered;
 };
 
-const carryingNothing = () => {
-  return playerInventory.batteries.filter((battery) => {
-    console.log(battery.carried);
-    return battery.carried
-  });
+// Return true if player is carrying nothing
+const isCarryingNothing = () => {
+  return playerInventory.batteries.filter((battery) => battery.carried).length ? false : true;
+};
+
+const pickupBattery = (player, battery) => {
+  // If the player is carrying nothing, allow them to pickup a battery.
+  if(isCarryingNothing()){
+    console.log(battery);
+    battery.kill();
+    carryObject(battery.name, true);
+  }
 };
 
 const interactTerminal = (player, terminal) => {
-  if (isDelivered(terminal.activator) || carryingNothing()) {
+  // Check if object has been delivered and player is carrying nothing, if so, exit.
+  if (isDelivered(terminal.activator) || isCarryingNothing()) {
     return;
   }
 
+  // If player is carrying the activator, deliver it and exit.
   if (isCarried(terminal.activator)) {
     carryObject(terminal.activator, false);
     deliverObject(terminal.activator);
@@ -82,22 +87,10 @@ const interactTerminal = (player, terminal) => {
   }
 
 
-
+  // If player is carrying something, but it is not the activator for the terminal, shock them.
   if (!isCarried(terminal.activator)) {
     console.log('shock');
   }
-  // if (!isCarried(terminal.activator) && !isDelivered(terminal.activator)) {
-  //   console.log('shock');
-  //   return;
-  // }
-  //
-  // // If player has battery, deliver battery.
-  // if(isCarried(terminal.activator)){
-  //   carryObject(terminal.activator, false);
-  //   deliverObject(terminal.activator);
-  //   // Set terminal image to activated
-  //   terminal.loadTexture('terminalOn');
-  // }
 
 };
 
