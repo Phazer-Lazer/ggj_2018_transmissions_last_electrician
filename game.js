@@ -4,7 +4,16 @@ const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
 let playerInventory = {
-  battery: false
+  batteries: [
+  {
+    'name': 'battery1',
+    'carried': false
+  },
+  {
+    'name': 'battery1',
+    'carried': false
+  }
+]
 };
 
 const game = new Phaser.Game(1280, 720, Phaser.AUTO, '', {
@@ -16,36 +25,12 @@ const game = new Phaser.Game(1280, 720, Phaser.AUTO, '', {
 let level = 1;
 let currentLevel = level;
 
-let player, cursors, batteries;
+let player, cursors, batteries, terminals;
 
-
-
-function preload() {
-  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
-  game.load.image('path', 'assets/path.png');
-  game.load.image('wall', 'assets/wall.png');
-}
-
-function create() {
-  
-  /* 
-    Add Groups
-  */
-  batteries = game.add.group();
-  batteries.enableBody = true;
-  
-  /*
-    Create Objects in Groups
-  */
-  const battery = batteries.create(200, 500, 'wall');
-  
-  /*
-    Create Player
-  */
-  player = game.add.sprite(32, game.world.height - 150, 'our_hero');
-  player.animations.add("walk", [0, 1, 2, 3], 10, true);
-  
-}
+const setInventoryItem = (name, value) => {
+  let object = playerInventory.batteries.find(b => b.name === name);
+  object.carried = value;
+};
 
 const disableScrollbar = () => {
   window.addEventListener("keydown", function(e) {
@@ -56,45 +41,90 @@ const disableScrollbar = () => {
 };
 
 const pickupBattery = (player, battery) => {
-  console.log('Picked up Battery');
+  console.log(battery);
   battery.kill();
-  playerInventory.battery = true;
-  console.log('playerInventory.battery', playerInventory.battery);
-  console.log('batter', battery);
+  setInventoryItem(battery.name, true);
 };
 
-function update() {
-  // Initialize cursor to listen to keyboard input
-  cursors = game.input.keyboard.createCursorKeys();
+const interactTerminal = (player, terminal) => {
+  // If player has battery, deliver battery.
+  if(playerInventory.batteries.find(x => x.name === terminal.name).carried){
+    setInventoryItem(terminal.name, false);
+  }
+  
+};
 
+function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.image('path', 'assets/path.png');
+  game.load.image('wall', 'assets/wall.png');
+}
 
+function create() {
+  game.physics.startSystem(Phaser.Physics.ARCADE);
+  
+  /* 
+    Add Groups
+  */
+  batteries = game.add.group();
+  batteries.enableBody = true;
+  
+  terminals = game.add.group();
+  terminals.enableBody = true;
   
 
-
   /*
-    Add Physics
+  Create Objects in Groups
   */
+  const battery1 = batteries.create(200, 500, 'wall');
+  battery1.name = "battery1";
+  // const battery2 = batteries.create(200, 300, 'wall');
+  // battery2.name = "battery2";
+
+  const terminal = terminals.create(150, 500, 'path');
+  terminal.body.immovable = true;
+  // Terminal needs the same name as the battery to be deliverable
+  terminal.name = "battery1";
+  
+  /*
+  Create Player
+  */
+  player = game.add.sprite(32, game.world.height - 150, 'our_hero');
   game.physics.arcade.enable(player);
+  player.animations.add("walk", [0, 1, 2, 3], 10, true);
+  
+}
+
+function update() {
+  
+  
+  /*
+  Add Physics
+  */
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
-
-
-
-      
-  // World Manager Creating Map
-  const currentUpdateFunctionName = `level${currentLevel}Update`;
-  WorldManager[currentUpdateFunctionName]();
-
+  game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
+  
+  
+  
+  
+  // // World Manager Creating Map
+  // const currentUpdateFunctionName = `level${currentLevel}Update`;
+  // WorldManager[currentUpdateFunctionName]();
+  
   const PLAYER = PlayerManager;
-
-   // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
-   disableScrollbar();
-
+  
+  // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
+  disableScrollbar();
+  
   // Reset player velocity in each direction so you can't move on angles
   player.body.velocity.x = 0;
   player.body.velocity.y = 0;
-
+  
   // Set player anchor to center rotation
   player.anchor.setTo(0.5, 0.5);
+  
+  // Initialize cursor to listen to keyboard input
+  cursors = game.input.keyboard.createCursorKeys();
 
   if (cursors.left.isDown){//  Move to the left
     player.body.velocity.x = -PLAYER.SPEED;
