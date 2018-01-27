@@ -1,16 +1,20 @@
+let walls;
+
 const WorldManager = (function () {
   return {
     levelHeight: 22,
     levelWidth: 40,
     level1Update() {
-      let walls = game.add.group();
-      walls.enableBody = true;
       let wall;
+
+      walls = game.add.group();
+      walls.enableBody = true;
 
       //vertical border walls
       for(let w = 0; w < this.levelHeight; w++){
         //left border
         wall = walls.create(0, TILE_HEIGHT * w, 'wall');
+        wall.body.immovable = true;
         //right border
         wall = walls.create(game.world.width-TILE_WIDTH, TILE_HEIGHT * w, 'wall');
         wall.body.immovable = true;
@@ -20,6 +24,7 @@ const WorldManager = (function () {
       for(let w = 0; w < this.levelWidth; w++){
         //top border
         wall = walls.create(TILE_WIDTH * w, 0, 'wall');
+        wall.body.immovable = true;
         //bottom border
         wall = walls.create(TILE_WIDTH * w, game.world.height-TILE_HEIGHT, 'wall');
         wall.body.immovable = true;

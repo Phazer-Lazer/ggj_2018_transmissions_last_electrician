@@ -61,21 +61,48 @@ const isDelivered = (name) => {
   return playerInventory.batteries.find(x => x.name === name).delivered;
 };
 
+const carryingNothing = () => {
+  return playerInventory.batteries.filter((battery) => {
+    console.log(battery.carried);
+    return battery.carried
+  });
+};
+
 const interactTerminal = (player, terminal) => {
-  // If player has battery, deliver battery.
-  if(isCarried(terminal.activator)){
+  if (isDelivered(terminal.activator) || carryingNothing()) {
+    return;
+  }
+
+  if (isCarried(terminal.activator)) {
     carryObject(terminal.activator, false);
     deliverObject(terminal.activator);
-    // Set termainl image to activated
-    terminal.loadTexture('wall');
-  } else if(!isDelivered(terminal.activator)){ // Else, if the player is delivering a battery to the wrong terminal, shock them.
+      // Set terminal image to activated
+    terminal.loadTexture('terminalOn');
+    return;
+  }
+
+
+
+  if (!isCarried(terminal.activator)) {
     console.log('shock');
   }
+  // if (!isCarried(terminal.activator) && !isDelivered(terminal.activator)) {
+  //   console.log('shock');
+  //   return;
+  // }
+  //
+  // // If player has battery, deliver battery.
+  // if(isCarried(terminal.activator)){
+  //   carryObject(terminal.activator, false);
+  //   deliverObject(terminal.activator);
+  //   // Set terminal image to activated
+  //   terminal.loadTexture('terminalOn');
+  // }
 
 };
 
 const createBattery = (x, y, name) => {
-  const battery = batteries.create(x, y, 'wall');
+  const battery = batteries.create(x, y, 'battery');
   battery.name = name;
 };
 
@@ -95,7 +122,7 @@ const isLevelComplete = () => {
 const createTerminal = (x, y, activator) => {
   // Set termianl image based on wether or not it is delivered.
 
-  const terminal = terminals.create(x, y, 'path');
+  const terminal = terminals.create(x, y, 'terminalOff');
   terminal.body.immovable = true;
   terminal.activator = activator;
 };
@@ -105,7 +132,8 @@ function preload() {
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.image('battery', 'assets/battery.png');
-  game.load.image('terminal', 'assets/terminal.png');
+  game.load.image('terminalOff', 'assets/terminal_off.png');
+  game.load.image('terminalOn', 'assets/terminal_on.png');
 }
 
 function create() {
@@ -137,7 +165,7 @@ function create() {
   /*
   Create Player
   */
-  player = game.add.sprite(32, game.world.height - 150, 'our_hero');
+  player = game.add.sprite(9 * TILE_HEIGHT, 16 * TILE_WIDTH, 'our_hero');
   player.scale.setTo(2, 2);
   game.physics.arcade.enable(player);
   player.animations.add("walk", [0, 1, 2, 3], 10, true);
@@ -150,6 +178,7 @@ function update() {
   /*
   Add Physics
   */
+  game.physics.arcade.collide(player, walls);
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
 
