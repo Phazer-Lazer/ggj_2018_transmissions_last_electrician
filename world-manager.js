@@ -84,6 +84,7 @@ const WorldManager = (function () {
     },
 
     level1Update() {
+      game.add.sprite(0, 0, 'floor');
 
       walls = game.add.group();
       walls.enableBody = true;
@@ -94,49 +95,49 @@ const WorldManager = (function () {
       this.buildBorder();
       this.hWall(10, 5, 12);
 
-      this.vWall(8, 20, 3);
-      this.hWall(12, 20, 3);
+      this.vWall(9, 20, 4);
+      this.hWall(31, 1, 3);
 
       this.vWall(8, 20, 15);
       this.hWall(8, 21, 15);
 
-      //builds path top left of screeen
-      for(let i =1; i < 12; i++){
-        this.hPath(19, 1, i );
-      }
-
-      //builds paths next to horizontal wall on left
-      this.hPath(4, 1, 12);
-      this.hPath(5, 15, 12);
-
-      //build path bottom left
-      for(let i =1; i < 9; i++){
-        this.hPath(19, 1, (i+12));
-      }
-
-      //builds path on the right
-      for(let i =1; i < 21; i++){
-        this.hPath(7, 32, i );
-      }
-
-      //builds path between the two vertical walls
-      this.vPath(4, 20, 11);
-
-      //builds path above horizontal wall toward the top
-      for(let i =0; i < 2; i++){
-        this.hPath(12, 20, (i + 1));
-      }
-      //builds path under horizontal wall toward the top
-      for(let i =0; i < 11; i++){
-        this.hPath(11, 21, (i + 4));
-      }
-
-      //builds path under horizontal wall toward the bottom
-      this.hPath(3, 29, 15);
-
-      for(let i =0; i < 5; i++){
-        this.hPath(11, 21, i + (this.levelHeight-6));
-      }
+      //builds path top left of screen
+      // for(let i =1; i < 12; i++){
+      //   this.hPath(19, 1, i );
+      // }
+      //
+      // //builds paths next to horizontal wall on left
+      // this.hPath(4, 1, 12);
+      // this.hPath(5, 15, 12);
+      //
+      // //build path bottom left
+      // for(let i =1; i < 9; i++){
+      //   this.hPath(19, 1, (i+12));
+      // }
+      //
+      // //builds path on the right
+      // for(let i =1; i < 21; i++){
+      //   this.hPath(7, 32, i );
+      // }
+      //
+      // //builds path between the two vertical walls
+      // this.vPath(4, 20, 11);
+      //
+      // //builds path above horizontal wall toward the top
+      // for(let i =0; i < 2; i++){
+      //   this.hPath(12, 20, (i + 1));
+      // }
+      // //builds path under horizontal wall toward the top
+      // for(let i =0; i < 11; i++){
+      //   this.hPath(11, 21, (i + 4));
+      // }
+      //
+      // //builds path under horizontal wall toward the bottom
+      // this.hPath(3, 29, 15);
+      //
+      // for(let i =0; i < 5; i++){
+      //   this.hPath(11, 21, i + (this.levelHeight-6));
+      // }
 
 
     },
@@ -163,7 +164,7 @@ const WorldManager = (function () {
 
       this.vWall(9, 14, 8);
       this.hWall(8, 14, 17);
-      
+
       this.hWall(1, 26, 17);
       this.vWall(4, 27, 17);
 
@@ -203,7 +204,7 @@ const WorldManager = (function () {
       for(let i =1; i < 7; i++){
         this.hPath(12, 9, i);
       }
-      this.hPath(6, 15, 7)      
+      this.hPath(6, 15, 7)
       for(let i =0; i < 8; i++){
         this.hPath(6, 15, i+9);
       }
@@ -218,29 +219,29 @@ const WorldManager = (function () {
       //bottom right
       for(let i =0; i < 5; i++){
         this.hPath(11, 28, i+16);
-      }                   
+      }
       for(let i =0; i < 5; i++){
         this.hPath(6, 28, i+11);
-      } 
+      }
       //between narrow and b box 2
       for(let i =0; i < 3; i++){
         this.hPath(7, 21, i+14);
-      }  
+      }
       for(let i =0; i < 4; i++){
         this.hPath(17, 22, i+5);
-      }      
+      }
       for(let i =0; i < 6; i++){
         this.hPath(6, 33, i+9);
       }
-      //top right   
+      //top right
       for(let i =1; i < 4; i++){
         this.hPath(13, 26, i);
-      }  
-      //2nd from right   
+      }
+      //2nd from right
       for(let i =1; i < 5; i++){
         this.hPath(3, 22, i);
       }
-      
+
       this.hPath(4, 2, 9);
       this.hPath(3, 9, 11);
       this.hPath(4, 15, 8);
@@ -255,12 +256,6 @@ const WorldManager = (function () {
       this.vPath(2, 8, 19);
       this.vPath(3, 21, 5);
       this.vPath(3, 27, 14);
-      
-
-
-
-
-      
     },
   };
 })();

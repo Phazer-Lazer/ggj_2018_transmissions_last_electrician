@@ -21,12 +21,15 @@ let playerInventory = {
   ]
 };
 
+let exitHit = false;
+let levelComplete = false;
+let playerDead = false;
 let deathInterval;
 let levelLoading = false;
 let dialogueText;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
-let batteryIcons;
+let batteryIcons, exits;
 let shocked;
 
 let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
@@ -44,15 +47,19 @@ const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
 });
 
 function preload() {
+  game.load.image('exit', 'assets/exit.png');
+  game.load.spritesheet('live_wire', 'assets/live_wire.png', 64, 32);
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
   game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
+  game.load.image('floor', 'assets/floor.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.image('breaker', 'assets/switch_off.png', 20, 90);
+  game.load.image('breakerOn', 'assets/switch_on.png', 20, 90);
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('movable', 'assets/moveable_wall.png');
@@ -70,7 +77,6 @@ function preload() {
 }
 
 
-
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
   object.carried = value;
@@ -79,7 +85,6 @@ const carryObject = (name, value) => {
 const deliverObject = (name) => {
   let object = playerInventory.batteries.find(b => b.name === name);
   object.delivered = true;
-  console.log(object);
 };
 
 const disableScrollbar = () => {
@@ -89,7 +94,6 @@ const disableScrollbar = () => {
     }
   }, false);
 };
-
 
 
 const isCarried = (name) => {
@@ -102,7 +106,7 @@ const isDelivered = (name) => {
 
 // Return true if player is carrying nothing
 const isCarryingNothing = () => {
-  return playerInventory.batteries.filter((battery) => battery.carried).length ? false : true;
+  return !playerInventory.batteries.filter((battery) => battery.carried).length;
 };
 
 const pickupBattery = (player, battery) => {
@@ -132,24 +136,35 @@ const interactTerminal = (player, terminal) => {
 
       batteryIcon.kill();
 
+      let targetHazard = hazards.children.find((child) => {
+        return child.terminal === terminal.activator;
+      });
+
       let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
       newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
       newBattery.animations.play('glow');
+
+      targetHazard.loadTexture('live_wire', 0);
+      targetHazard.animations.add('electricity', [0, 1, 2, 3, 4, 5], 10, true);
+      targetHazard.animations.play('electricity', 30, true);
       return;
+
     }
+
 
 
     // If player is carrying something, but it is not the activator for the terminal, shock them.
     if (!isCarried(terminal.activator)) {
-      console.log('shock');
     }
   }
 };
 
 const interactBreaker = (player, breaker) => {
+  console.log('breaker');
   if(actionButton){
     //check if the player has used action button on the breaker, if so turn on hazard
-    let  callbacks = breaker.callbackArray;
+    breaker.loadTexture('breakerOn');
+    let callbacks = breaker.callbackArray;
     for(let i = 0; i < callbacks.length; i++){
       callbacks[i]['function'](callbacks[i].args);
     }
@@ -184,7 +199,7 @@ const isLevelComplete = () => {
     if(batteryArray[i].delivered) batteriesDelivered ++;
   }
 
-  return batteriesDelivered === batteryArray.length;
+  return batteriesDelivered === batteryArray.length || levelComplete || exitHit;
 };
 
 const createHazard = (x, y, name, terminal) => {
@@ -195,6 +210,8 @@ const createHazard = (x, y, name, terminal) => {
   hazard.deactivate = false;
   hazard.terminal = terminal; // Set terminal name that it is associated with for power
   // hazard.callbackArray = callbackArray;
+
+  return hazard;
 };
 
 const createTerminal = (x, y, activator) => {
@@ -269,7 +286,7 @@ const interactHazard = (player, hazard) =>  {
   if(!hazard.deactivate) {
     // Check if battery is delivered to terminal and therfore on
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
-    if (terminalOn) {
+    if (terminalOn && !playerDead) {
       player.angle = PLAYER.DIR_RIGHT;
       playerShocked = true;
       player.loadTexture('shocked');
@@ -341,7 +358,7 @@ const drawBatteryPercent = () => {
 
   // Check if the text exists.  If it doesn't, create it.
   if(typeof batteryFill === "undefined"){
-    batteryFill = game.add.text(65, 48, `%${PLAYER.curBatteryLife}`);
+    batteryFill = game.add.text(TILE_WIDTH + 35, game.height - (4 * TILE_HEIGHT) + 18, `%${PLAYER.curBatteryLife}`);
     batteryFill.addColor("white", 0); //red
   }
   // Update battery life text
@@ -351,7 +368,7 @@ const drawBatteryPercent = () => {
 };
 
 const killPlayer = () => {
-  console.log('kill');
+  playerDead = true;
 
   EventManager.playSound({
     'sound': 'scream',
@@ -398,12 +415,13 @@ function update() {
   cursors = game.input.keyboard.createCursorKeys();
   spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-
-  // let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
-  let levelComplete = currentLevel === 0 ? true : isLevelComplete();
+  levelComplete = false;
+  levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
+  // levelComplete = currentLevel === 0 ? true : isLevelComplete();
 
   if (levelComplete && currentLevel === 0) {
-
+    exitHit = false;
+    console.log(1)
     levelLoading = true;
     game.world.removeAll();
     currentLevel = 1;
@@ -416,6 +434,9 @@ function update() {
     /*
     Add Groups
     */
+    exits = game.add.group();
+    exits.enableBody = true;
+
     batteries = game.add.group();
     batteries.enableBody = true;
 
@@ -456,7 +477,7 @@ function update() {
   //const holeY = 10;
   //createHole(12, 10);
 
-    createBreaker(10, 10, [
+    createBreaker(24, 4, [
       {
         'function': EventManager.deactivateHazard,
         'args': {
@@ -478,22 +499,10 @@ function update() {
           'targetGroup': doors // The group of objects that contain the exact hazard
         }
       },
-      {
-        'function': EventManager.playSound,
-        'args': {
-          'game': game,
-          'sound': "darkness",
-          'loop': false, // The group of objects that contain the exact hazard
-          'stopOtherSounds': true
-        }
-      },
-      {
-        'function': () => {lightsOn = false;},
-        'args': {}
-      }
     ]);
 
-    createHazard(10, 8, "hazard1", "battery1");
+    const level1Hazard = createHazard(20, 13, "hazard1", "battery1");
+    level1Hazard.scale.setTo(1, 2);
 
     createDoor(20, 2, 'door1');
     createDoor(20, 1, 'door2');
@@ -520,11 +529,16 @@ function update() {
     DialogueManager.aW('But you gonna learn today!');
 
 
-    batteryUi = game.add.sprite(30, 30, 'flashDying');
+    batteryUi = game.add.sprite(1 * TILE_WIDTH, game.height - (4 * TILE_HEIGHT), 'flashDying');
     batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);
     batteryUi.scale.setTo(2, 2);
+
+    const exit = exits.create(TILE_WIDTH, TILE_HEIGHT, 'exit');
+    exit.immovable = true;
+
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
+    exitHit = false;
     levelLoading = true;
     game.world.removeAll();
 
@@ -587,6 +601,7 @@ function update() {
     player.body.setSize(12, 12, 10, 14);
     levelLoading = false;
   } else if(isLevelComplete() && currentLevel === 2){
+    console.log(2)
     levelLoading = true;
   game.world.removeAll();
 
@@ -595,7 +610,9 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
   holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   levelLoading = false;
   } else if (isLevelComplete() && currentLevel === 3) {
-    alert('YOU WONNERED.');
+    exitHit = false;
+
+    console.log('YOU WONNERED.', currentLevel);
   }
 
   if (currentLevel !== 0 && !levelLoading) {
@@ -609,12 +626,13 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
 
 
     if(isLevelComplete()){
-      console.log('Victory!');
+      // console.log('Victory!');
     }
 
     /*
     Add Physics
     */
+    game.physics.arcade.collide(player, exits, playerHitExit, null, this);
     game.physics.arcade.collide(player, walls);
     game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
     game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
@@ -624,7 +642,7 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     game.physics.arcade.collide(movables, movables);
     game.physics.arcade.collide(player, holes);
     game.physics.arcade.collide(movables, holes, fillHole, null, this);
-    game.physics.arcade.collide(player, hazards, interactHazard, null, this);
+    game.physics.arcade.overlap(player, hazards, interactHazard, null, this);
     game.physics.arcade.collide(player, doors, () => {
     }, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
 
@@ -679,4 +697,8 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     drawBatteryPercent();
     startDrainBattery();
   }
+}
+
+function playerHitExit() {
+  exitHit = true;
 }
