@@ -13,6 +13,8 @@ const EventManager = (function () {
           console.log('Deactivated');
       },
       playSound(args){
+          // Game must be passed in to be able to check if sound is already being played.
+
           // Check if sound is already being played.
           let alreadyPlaying = args.game.sound._sounds.find(song => song.name === args.sound) ? true : false;
           if(!alreadyPlaying){

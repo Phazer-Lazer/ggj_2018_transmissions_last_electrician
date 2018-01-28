@@ -59,6 +59,7 @@ function preload() {
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
+  game.load.audio('scream', 'sounds/scream.wav');
 }
 
 const carryObject = (name, value) => {
@@ -314,6 +315,17 @@ const drawBatteryPercent = () => {
 
 };
 
+const killPlayer = () => {
+  EventManager.playSound({
+    'sound': 'scream',
+    'game': game
+  });
+  player.visible = false;
+  setTimeout(() => {
+    location.reload();
+  }, 5000);
+};
+
 const startDrainBattery = () => {
   if(!PLAYER.batteryDraining){
     PLAYER.batteryDraining = true;
@@ -326,9 +338,7 @@ const startDrainBattery = () => {
     PLAYER.SIGHT_DIST = (PLAYER.curBatteryLife+1) * 32;
   }
   if(PLAYER.curBatteryLife === 0){
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
+    killPlayer();
   }
 };
 
