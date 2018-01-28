@@ -151,8 +151,37 @@ const WorldManager = (function () {
 
       this.buildBorder();
 
-      this.vWall(10, 8, 1);
-      this.vWall(4, 8, 14);
+      this.vWall(11, 8, 1);
+      this.vWall(3, 8, 16);
+
+      this.hWall(1, 1, 9);
+      this.hWall(2, 6, 9);
+
+      this.hWall(6, 9, 7);
+      this.hWall(2, 12, 11);
+
+      this.vWall(9, 14, 8);
+      this.hWall(8, 14, 17);
+      
+      this.hWall(1, 26, 17);
+      this.vWall(4, 27, 17);
+
+      this.hWall(5, 22, 9);
+      this.vWall(6, 21, 8);
+      this.vWall(5, 27, 9);
+      this.hWall(2, 25, 13);
+
+      this.vWall(4, 21, 1);
+      this.hWall(2, 19, 8);
+
+      this.vWall(4, 25, 1);
+      this.hWall(5, 26, 4);
+      this.hWall(4, 35, 4);
+
+      this.hWall(5, 28, 10);
+      this.hWall(5, 34, 15);
+
+
 
 
 

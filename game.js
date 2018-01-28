@@ -21,7 +21,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
-let level = 1;
+let level = 2;
 let currentLevel = level;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let lightsOn = true;
@@ -180,9 +180,9 @@ function create() {
   /*
   Create Objects in Groups
   */
-  createBattery(7, 16, "battery1");
+  // createBattery(7, 16, "battery1");
   
-  createTerminal(21, 16, "battery1");
+  // createTerminal(21, 16, "battery1");
 
 
   /*
