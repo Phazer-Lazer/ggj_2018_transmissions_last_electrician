@@ -29,29 +29,24 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
-  game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
   game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
+  game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.image('intro', 'assets/intro_screen.png');
+  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
+
+  game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
+  game.load.audio('darkness', 'sounds/darkness_bgm.wav');
 }
 
-<<<<<<< HEAD
 let currentLevel = 0;
-let player, cursors, spaceBar, batteries, terminals, doors, breakers;
-let hazards;
-let lightsOn = true;
-=======
-let level = 1;
-let currentLevel = level;
-
 let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
-let lightsOn = false;
->>>>>>> Fix issue showing killed objects with flashlight.
+let lightsOn = true;
 
 let actionButton = false;
 
@@ -134,10 +129,10 @@ const interactBreaker = (player, breaker) => {
     //check if the player has used action button on the breaker, if so turn on hazard
     let  callbacks = breaker.callbackArray;
     for(let i = 0; i < callbacks.length; i++){
-      callbacks[i]['function'](callbacks[i].targetGroup, callbacks[i].target);
+      callbacks[i]['function'](callbacks[i].arguments);
     }
   }
-}
+};
 
 const createBattery = (x, y, name) => {
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -203,6 +198,18 @@ function create() {
   happyMusic.loopFull(1);
 }
 
+const getDistance = (obj1,obj2) => {
+  let a = obj1.x - obj2.x;
+  let b = obj1.y - obj2.y;
+  return Math.abs(Math.sqrt(a*a + b*b));
+};
+
+const createDoor = (x, y, name) => {
+  const door = doors.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'door');
+  door.body.immovable = true;
+  door.name = name;
+};
+
 const interactHazard = (player, hazard) =>  {
   if(!hazard.deactivate){
     // Check if battery is delivered to terminal and therfore on
@@ -211,40 +218,8 @@ const interactHazard = (player, hazard) =>  {
       console.log('Shock.');
     }
   }
-}
-const getDistance = (obj1,obj2) => {
-  let a = obj1.x - obj2.x;
-  let b = obj1.y - obj2.y;
-  return Math.abs(Math.sqrt(a*a + b*b));
 };
 
-<<<<<<< HEAD
-const createDoor = (x, y, name) => {
-  const door = doors.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'door');
-  door.body.immovable = true;
-  door.name = name;
-};
-
-
-const isVisible = (position, playerPosition) => {
-  let playerDir = player.angle;
-
-  let isHorizontal = (playerDir + 180)%180 === 0;
-  let isVertical = !isHorizontal;
-  let isInFrontOfPlayer = isHorizontal ?
-    Math.sign(position.x - playerPosition.x) === Math.sign(playerDir + 1) :
-    Math.sign(position.y - playerPosition.y) === Math.sign(playerDir);
-
-  if (isInFrontOfPlayer) {
-    let dx = Math.abs(position.x - playerPosition.x);
-    let dy = Math.abs(position.y - playerPosition.y);
-    let theta = Math.atan2(dy, dx);
-    let degrees = theta * 180/Math.PI;
-
-    let inFlashLightView = isHorizontal ?
-      degrees < 50 : degrees > 40;
-    return inFlashLightView;
-=======
 const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
   if(obj.alive){
@@ -267,7 +242,6 @@ const isVisible = (obj, playerPosition) => {
         return inFlashLightView;
       }
       return false;
->>>>>>> Fix issue showing killed objects with flashlight.
   }
   return false;
 };
@@ -361,11 +335,11 @@ function update() {
   } else if (levelComplete && currentLevel === 1){
       game.world.removeAll();
 
-      currentLevel += 1
+  //     currentLevel += 1
 
-      // World Manager Level 2 Creating Map
-      let currentUpdateFunctionName = `level${currentLevel}Update`;
-      WorldManager[currentUpdateFunctionName]();
+  //     // World Manager Level 2 Creating Map
+  //     let currentUpdateFunctionName = `level${currentLevel}Update`;
+  //     WorldManager[currentUpdateFunctionName]();
 
       batteries = game.add.group();
       batteries.enableBody = true;
@@ -408,17 +382,19 @@ function update() {
 
 
 
-  } else if (levelComplete && currentLevel === 2){
+  } else if(isLevelComplete() && currentLevel === 2){
+
       game.world.removeAll();
+      console.log(currentLevel)
 
       currentLevel += 1
   }
 
   if (currentLevel !== 0) {
 
-  if (!lightsOn) {
-    hideObjects(player);
-  }
+    if (!lightsOn) {
+      hideObjects(player);
+    }
 
     /*
     Add Physics
@@ -427,46 +403,48 @@ function update() {
     game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
     game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
     game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
-  game.physics.arcade.collide(player, hazards, interactHazard, null, this);
-  game.physics.arcade.collide(player, doors, () => {}, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
+    game.physics.arcade.collide(player, hazards, interactHazard, null, this);
+    game.physics.arcade.collide(player, doors, () => {
+    }, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
 
 
     // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
     disableScrollbar();
 
-  // Reset player velocity in each direction so you can't move on angles
-  player.body.velocity.x = 0;
-  player.body.velocity.y = 0;
+    // Reset player velocity in each direction so you can't move on angles
+    player.body.velocity.x = 0;
+    player.body.velocity.y = 0;
 
-  // Set player anchor to center rotation
-  player.anchor.setTo(0.5, 0.5);
+    // Set player anchor to center rotation
+    player.anchor.setTo(0.5, 0.5);
 
-  // Initialize cursor to listen to keyboard input
-  cursors = game.input.keyboard.createCursorKeys();
-  spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);;
+    // Initialize cursor to listen to keyboard input
+    cursors = game.input.keyboard.createCursorKeys();
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-  actionButton = spaceBar.isDown;
+    actionButton = spaceBar.isDown;
 
-  if (cursors.left.isDown){//  Move to the left
-    player.body.velocity.x = -PLAYER.SPEED;
-    player.angle = PLAYER.DIR_LEFT;
-    player.animations.play('walk');
-  }
-  else if (cursors.right.isDown){//  Move to the right
-    player.body.velocity.x = PLAYER.SPEED;
-    player.angle = PLAYER.DIR_RIGHT;
-    player.animations.play('walk');
-  }
-  else if (cursors.up.isDown){//  Move to the left
-    player.body.velocity.y = -PLAYER.SPEED;
-    player.angle = PLAYER.DIR_UP;
-    player.animations.play('walk');
-  }
-  else if (cursors.down.isDown){//  Move to the right
-    player.body.velocity.y = PLAYER.SPEED;
-    player.angle = PLAYER.DIR_DOWN;
-    player.animations.play('walk');
-  } else {
-    player.animations.stop();
+    if (cursors.left.isDown) {//  Move to the left
+      player.body.velocity.x = -PLAYER.SPEED;
+      player.angle = PLAYER.DIR_LEFT;
+      player.animations.play('walk');
+    }
+    else if (cursors.right.isDown) {//  Move to the right
+      player.body.velocity.x = PLAYER.SPEED;
+      player.angle = PLAYER.DIR_RIGHT;
+      player.animations.play('walk');
+    }
+    else if (cursors.up.isDown) {//  Move to the left
+      player.body.velocity.y = -PLAYER.SPEED;
+      player.angle = PLAYER.DIR_UP;
+      player.animations.play('walk');
+    }
+    else if (cursors.down.isDown) {//  Move to the right
+      player.body.velocity.y = PLAYER.SPEED;
+      player.angle = PLAYER.DIR_DOWN;
+      player.animations.play('walk');
+    } else {
+      player.animations.stop();
+    }
   }
 }
