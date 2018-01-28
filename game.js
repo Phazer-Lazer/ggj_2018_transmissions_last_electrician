@@ -299,7 +299,7 @@ function render() {
   //   }
   //
   //   game.debug.body(player);
-  }
+  // }
 }
 
 function update() {
@@ -477,7 +477,6 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
   }
 
   if (currentLevel !== 0 && !levelLoading) {
-    console.log({currentLevel});
     if (!lightsOn) {
       hideObjects(player);
     }
