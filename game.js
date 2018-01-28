@@ -5,6 +5,7 @@ const TILE_WIDTH = 32;
 
 const PLAYER = PlayerManager;
 
+
 let playerInventory = {
   batteries: [
     {
@@ -23,8 +24,10 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let level = 1;
 let currentLevel = level;
-let player, cursors, batteries, terminals;
+let player, cursors, spaceBar, batteries, terminals;
 let lightsOn = true;
+
+let actionButton = false;
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -61,40 +64,43 @@ const isCarryingNothing = () => {
 };
 
 const pickupBattery = (player, battery) => {
-  // If the player is carrying nothing, allow them to pickup a battery.
-  if(isCarryingNothing()){
-    battery.kill();
-    carryObject(battery.name, true);
-  }
+  if(actionButton === true){
+    // If the player is carrying nothing, allow them to pickup a battery.
+    if(isCarryingNothing() ){
+      battery.kill();
+      carryObject(battery.name, true);
+    }
+}
 };
 
 const interactTerminal = (player, terminal) => {
-  // Check if object has been delivered and player is carrying nothing, if so, exit.
-  if (isDelivered(terminal.activator) || isCarryingNothing()) {
-    return;
+  if(actionButton === true){
+    // Check if object has been delivered and player is carrying nothing, if so, exit.
+    if (isDelivered(terminal.activator) || isCarryingNothing()) {
+      return;
+    }
+
+    // If player is carrying the activator, deliver it and exit.
+    if (isCarried(terminal.activator)) {
+      carryObject(terminal.activator, false);
+      deliverObject(terminal.activator);
+      // Set terminal image to activated
+      terminal.loadTexture('terminalOn');
+      terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
+      terminal.animations.play('on');
+
+      let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
+      newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+      newBattery.animations.play('glow');
+      return;
+    }
+
+
+    // If player is carrying something, but it is not the activator for the terminal, shock them.
+    if (!isCarried(terminal.activator)) {
+      console.log('shock');
+    }
   }
-
-  // If player is carrying the activator, deliver it and exit.
-  if (isCarried(terminal.activator)) {
-    carryObject(terminal.activator, false);
-    deliverObject(terminal.activator);
-    // Set terminal image to activated
-    terminal.loadTexture('terminalOn');
-    terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
-    terminal.animations.play('on');
-
-    let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
-    newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
-    newBattery.animations.play('glow');
-    return;
-  }
-
-
-  // If player is carrying something, but it is not the activator for the terminal, shock them.
-  if (!isCarried(terminal.activator)) {
-    console.log('shock');
-  }
-
 };
 
 const createBattery = (x, y, name) => {
@@ -246,6 +252,13 @@ function update() {
 
   // Initialize cursor to listen to keyboard input
   cursors = game.input.keyboard.createCursorKeys();
+  spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);;
+
+  if(spaceBar.isDown){
+    actionButton = true;
+  } else {
+    actionButton = false;
+  }
 
   if (cursors.left.isDown){//  Move to the left
     player.body.velocity.x = -PLAYER.SPEED;
