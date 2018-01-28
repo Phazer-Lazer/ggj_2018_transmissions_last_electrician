@@ -70,6 +70,8 @@ function preload() {
   game.load.spritesheet('shocked', 'assets/electrocuted.png', 64, 64);
 
 
+  game.load.audio('power_off', 'sounds/power_off.wav');
+  game.load.audio('power_on', 'sounds/power_on.wav');
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('vox_put_battery', 'sounds/vox_put_battery.wav');
   game.load.audio('vox_watch_out', 'sounds/vox_watch_out.wav');
@@ -137,6 +139,7 @@ const interactTerminal = (player, terminal) => {
       terminal.animations.play('on');
 
       batteryIcon.kill();
+      game.sound.play('power_on');
 
       let targetHazard = hazards.children.find((child) => {
         return child.terminal === terminal.activator;
@@ -153,6 +156,8 @@ const interactTerminal = (player, terminal) => {
       targetHazard.angle = PLAYER.DIR_DOWN;
 
       game.sound.play('vox_watch_out');
+      DialogueManager.aW('[Your Walkie Talkie buzzes]');
+      DialogueManager.aW('Leeroy! Watch out for them zappers!!');
       return;
 
     }
@@ -428,6 +433,7 @@ function update() {
 
   if (levelComplete && currentLevel === 0) {
     exitHit = false;
+    lightsOn = true;
     console.log(1)
     levelLoading = true;
     game.world.removeAll();
@@ -516,7 +522,7 @@ function update() {
           'game': game,
           'sound': "power_off",
           'loop': false, // The group of objects that contain the exact hazard
-          'stopOtherSounds': false
+          'stopOtherSounds': true
         }
       },
       {
@@ -525,7 +531,7 @@ function update() {
           'game': game,
           'sound': "darkness",
           'loop': false, // The group of objects that contain the exact hazard
-          'stopOtherSounds': true
+          'stopOtherSounds': false
         }
       },
     ]);
@@ -553,9 +559,7 @@ function update() {
     );
 
     DialogueManager.aW('[Your Walkie Talkie buzzes]');
-    DialogueManager.aW('Leeroy! Hot Rob here!');
-    DialogueManager.aW('I know it\'s your first day on the job...');
-    DialogueManager.aW('But you gonna learn today!');
+    DialogueManager.aW('Leeroy! Grab that battery!!');
 
 
     batteryUi = game.add.sprite(1 * TILE_WIDTH, game.height - (4 * TILE_HEIGHT), 'flashDying');
@@ -719,10 +723,10 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
         player.animations.stop();
       }
     }
-    else if (playerShocked) {
-      player.body.immovable = true;
-      player.animations.play('shock');
-    }
+    // else if (playerShocked) {
+    //   player.body.immovable = true;
+    //   player.animations.play('shock');
+    // }
 
 
     drawBatteryPercent();
