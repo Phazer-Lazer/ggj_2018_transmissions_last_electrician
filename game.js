@@ -21,10 +21,13 @@ let playerInventory = {
   ]
 };
 
+let deathInterval;
 let levelLoading = false;
 let dialogueText;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
+let batteryIcons;
+let shocked;
 
 let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
 let lightsOn = true;
@@ -55,12 +58,18 @@ function preload() {
   game.load.image('movable', 'assets/moveable_wall.png');
   game.load.image('flashlight', 'assets/flashlight.png');
   game.load.spritesheet('flashDying', 'assets/dying_flashlight.png', 64, 32);
+  game.load.image('movable', 'assets/wall.png');
+  game.load.spritesheet('batteryIcon', 'assets/battery_glow.png', 52, 35);
+  game.load.spritesheet('shocked', 'assets/electrocuted.png', 64, 64);
+
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
   game.load.audio('scream', 'sounds/scream.wav');
   game.load.audio('zap', 'sounds/zap.wav');
 }
+
+
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -102,6 +111,7 @@ const pickupBattery = (player, battery) => {
     battery.kill();
     carryObject(battery.name, true);
   }
+  createBatteryIcon();
 };
 
 const interactTerminal = (player, terminal) => {
@@ -119,6 +129,8 @@ const interactTerminal = (player, terminal) => {
       terminal.loadTexture('terminalOn');
       terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
       terminal.animations.play('on');
+
+      batteryIcon.kill();
 
       let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
       newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
@@ -215,6 +227,16 @@ const createHole = (x, y, activator) => {
   hole.activator = activator
 }
 
+let batteryIcon;
+
+const createBatteryIcon = () => {
+  batteryIcon = batteryIcons.create(38 * TILE_WIDTH, 0.5 * TILE_HEIGHT, 'batteryIcon')
+  batteryIcon.body.immovable = true;
+  batteryIcon.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+  batteryIcon.animations.play('glow');
+}
+
+
 function create() {
 
   graphics = game.add.graphics(100, 100);
@@ -241,16 +263,25 @@ const createDoor = (x, y, name) => {
   door.name = name;
 };
 
+let playerShocked;
+
 const interactHazard = (player, hazard) =>  {
-  if(!hazard.deactivate){
+  if(!hazard.deactivate) {
     // Check if battery is delivered to terminal and therfore on
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
-    if(terminalOn){
-      console.log('Shock.');
+    if (terminalOn) {
+      player.angle = PLAYER.DIR_RIGHT;
+      playerShocked = true;
+      player.loadTexture('shocked');
+      player.animations.add('shock', [0, 1, 2, 3], 10, true);
+      player.animations.play('shock');
+
       EventManager.playSound({
         'game': game,
         'sound': 'zap'
       });
+
+      killPlayer();
     }
   }
 };
@@ -320,12 +351,15 @@ const drawBatteryPercent = () => {
 };
 
 const killPlayer = () => {
+  console.log('kill');
+
   EventManager.playSound({
     'sound': 'scream',
     'game': game
   });
-  player.visible = false;
+
   setTimeout(() => {
+    player.visible = false;
     location.reload();
   }, 5000);
 };
@@ -403,23 +437,24 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
-
+    batteryIcons = game.add.group();
+    batteryIcons.enableBody = true;
 
     /*
     Create Objects in Groups
     */
     createBattery(7, 16, "battery1");
-    // createBattery(200, 300, "battery2");
+    // createBattery(20, 18, "battery7");
 
     createTerminal(21, 16, "battery1");
 
-    createMovable(10, 10);
-    createMovable(11, 11);
+  //createMovable(10, 10);
+  //createMovable(11, 11);
 
 
-    const holeX = 12;
-    const holeY = 10;
-    createHole(12, 10);
+  //const holeX = 12;
+  //const holeY = 10;
+  //createHole(12, 10);
 
     createBreaker(10, 10, [
       {
@@ -458,7 +493,7 @@ function update() {
       }
     ]);
 
-    createHazard(8, 8, "hazard1", "battery1");
+    createHazard(10, 8, "hazard1", "battery1");
 
     createDoor(20, 2, 'door1');
     createDoor(20, 1, 'door2');
@@ -610,28 +645,34 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     actionButton = spaceBar.isDown;
-
-    if (cursors.left.isDown) {//  Move to the left
-      player.body.velocity.x = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_LEFT;
-      player.animations.play('walk');
+    if (!playerShocked) {
+      if (cursors.left.isDown) {//  Move to the left
+        player.body.velocity.x = -PLAYER.SPEED;
+        player.angle = PLAYER.DIR_LEFT;
+        player.animations.play('walk');
+      }
+      else if (cursors.right.isDown) {//  Move to the right
+        player.body.velocity.x = PLAYER.SPEED;
+        player.angle = PLAYER.DIR_RIGHT;
+        player.animations.play('walk');
+      }
+      else if (cursors.up.isDown) {//  Move to the left
+        player.body.velocity.y = -PLAYER.SPEED;
+        player.angle = PLAYER.DIR_UP;
+        player.animations.play('walk');
+      }
+      else if (cursors.down.isDown) {//  Move to the right
+        player.body.velocity.y = PLAYER.SPEED;
+        player.angle = PLAYER.DIR_DOWN;
+        player.animations.play('walk');
+      }
+      else {
+        player.animations.stop();
+      }
     }
-    else if (cursors.right.isDown) {//  Move to the right
-      player.body.velocity.x = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_RIGHT;
-      player.animations.play('walk');
-    }
-    else if (cursors.up.isDown) {//  Move to the left
-      player.body.velocity.y = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_UP;
-      player.animations.play('walk');
-    }
-    else if (cursors.down.isDown) {//  Move to the right
-      player.body.velocity.y = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_DOWN;
-      player.animations.play('walk');
-    } else {
-      player.animations.stop();
+    else if (playerShocked) {
+      player.body.immovable = true;
+      player.animations.play('shock');
     }
 
 
