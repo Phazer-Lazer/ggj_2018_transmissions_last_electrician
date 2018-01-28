@@ -23,6 +23,7 @@ let playerInventory = {
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
+let batteryIcons;
 let lightsOn = true;
 
 let actionButton = false;
@@ -49,10 +50,14 @@ function preload() {
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('movable', 'assets/wall.png');
+  game.load.spritesheet('batteryIcon', 'assets/battery_glow.png', 52, 35);
+
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
 }
+
+
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -94,6 +99,7 @@ const pickupBattery = (player, battery) => {
     battery.kill();
     carryObject(battery.name, true);
   }
+  createBatteryIcon();
 };
 
 const interactTerminal = (player, terminal) => {
@@ -111,6 +117,8 @@ const interactTerminal = (player, terminal) => {
       terminal.loadTexture('terminalOn');
       terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
       terminal.animations.play('on');
+
+      batteryIcon.kill();
 
       let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
       newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
@@ -207,6 +215,15 @@ const createHole = (x, y, activator) => {
   hole.activator = activator
 }
 
+let batteryIcon;
+
+const createBatteryIcon = () => {
+  batteryIcon = batteryIcons.create(38 * TILE_WIDTH, 0.5 * TILE_HEIGHT, 'batteryIcon')
+  batteryIcon.body.immovable = true;
+  batteryIcon.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+  batteryIcon.animations.play('glow');
+}
+
 function create() {
 
   game.add.sprite(0, 0, 'intro');
@@ -278,6 +295,7 @@ const hideObjects = (player) => {
   doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  batteryIcons.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 
@@ -348,6 +366,9 @@ function update() {
 
     doors = game.add.group();
     doors.enableBody = true;
+
+    batteryIcons = game.add.group();
+    batteryIcons.enableBody = true;
 
     /*
     Create Objects in Groups
