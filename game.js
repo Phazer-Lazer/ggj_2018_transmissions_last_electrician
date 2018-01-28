@@ -11,7 +11,7 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    },
+    }
   ]
 };
 
@@ -31,8 +31,8 @@ function preload() {
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.audio('darkness', 'sounds/darkness_bgm.wav');
 }
 
 let level = 1;
@@ -122,7 +122,7 @@ const interactBreaker = (player, breaker) => {
     //check if the player has used action button on the breaker, if so turn on hazard
     let  callbacks = breaker.callbackArray;
     for(let i = 0; i < callbacks.length; i++){
-      callbacks[i]['function'](callbacks[i].targetGroup, callbacks[i].target);
+      callbacks[i]['function'](callbacks[i].arguments);
     }
   }
 }
@@ -197,10 +197,10 @@ function create() {
   */
   batteries = game.add.group();
   batteries.enableBody = true;
-
+  
   terminals = game.add.group();
   terminals.enableBody = true;
-
+  
   breakers = game.add.group();
   breakers.enableBody = true;
 
@@ -211,29 +211,56 @@ function create() {
   doors.enableBody = true;
 
 
+
   /*
   Create Objects in Groups
   */
   createBattery(7, 16, "battery1");
-  // createBattery(200, 300, "battery2");
-
+  
   createTerminal(21, 16, "battery1");
+
+  // A map could be used here!!!
+
+  // let map  = new Map()
+
+  // map.set(EventManager.deactivateHazard, {
+  //   'target': "hazard1",
+  //   'targetGroup': hazards // The group of objects that contain the exact hazard
+  // });
+  // for (var key of myMap.keys()) {
+  //   key(myMap[key]);
+  // }
 
   createBreaker(10, 10, [
     {
       'function': EventManager.deactivateHazard, 
-      'target': "hazard1",
-      'targetGroup': hazards // The group of objects that contain the exact hazard
+      'arguments': {
+        'target': "hazard1",
+        'targetGroup': hazards // The group of objects that contain the exact hazard
+      }
     },
     {
       'function': EventManager.openDoor, 
-      'target': "door1",
-      'targetGroup': doors // The group of objects that contain the exact hazard
+      'arguments': {
+        'target': "door1",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }
     },
     {
       'function': EventManager.openDoor, 
-      'target': "door2",
-      'targetGroup': doors // The group of objects that contain the exact hazard
+      'arguments': {
+        'target': "door2",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }
+    },
+    {
+      'function': EventManager.playSound, 
+      'arguments': {
+        'game': game, // Need to pass in game to start auido
+        'sound': 'darkness',
+        'stopOtherSounds': true,
+        'loop': true
+      }
     }
   ]);
 
@@ -313,9 +340,61 @@ function update() {
   }
 
 
-  if(isLevelComplete()){
-    console.log('Victory!');
-  }
+  // if(isLevelComplete() && currentLevel === 1){
+    
+  //     game.world.removeAll();
+  //     console.log(currentLevel)
+
+  //     currentLevel += 1
+
+  //     // World Manager Level 2 Creating Map
+  //     let currentUpdateFunctionName = `level${currentLevel}Update`;
+  //     WorldManager[currentUpdateFunctionName]();
+
+  //     batteries = game.add.group();
+  //     batteries.enableBody = true;
+      
+  //     terminals = game.add.group();
+  //     terminals.enableBody = true;
+      
+  //     breakers = game.add.group();
+  //     breakers.enableBody = true;
+      
+  //     playerInventory = {
+  //       batteries: [
+  //         {
+  //           'name': 'battery2',
+  //           'carried': false,
+  //           'delivered': false
+  //         }
+  //       ]
+  //     }
+  //     /*
+  //     Create Objects in Groups
+  //     */
+  //     createBattery(7, 16, "battery2");
+      
+  //     createTerminal(21, 16, "battery2");
+    
+    
+  //     /*
+  //     Create Player
+  //     */
+  //     player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
+  //     player.scale.setTo(2, 2);
+  //     game.physics.arcade.enable(player);
+  //     player.animations.add("walk", [0, 1, 2, 3], 10, true);
+
+
+  
+  // } 
+  // else if(isLevelComplete() && currentLevel === 2){
+
+  //     game.world.removeAll();
+  //     console.log(currentLevel)
+
+  //     currentLevel += 1
+  // }
 
   /*
   Add Physics
@@ -372,5 +451,6 @@ function update() {
   } else {
     player.animations.stop();
   }
+
 
 }

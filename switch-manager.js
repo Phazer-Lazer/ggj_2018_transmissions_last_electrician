@@ -1,16 +1,29 @@
 
 const EventManager = (function () {
     return {
-      openDoor(doors, target){
-          let doorToOpen = doors.children.find(child => child.name === target);
+      openDoor(args){
+          let doorToOpen = args.targetGroup.children.find(child => child.name === args.target);
           doorToOpen.kill();
           console.log('Opened.');
       },
-      deactivateHazard(hazards, target){
+      deactivateHazard(args){
           // Find individual hazard object off of hazards group
-          let hazard = hazards.children.find(child => child.name === target);
+          let hazard = args.targetGroup.children.find(child => child.name === args.target);
           hazard.deactivate = true;
           console.log('Deactivated');
-      }
+      },
+      playSound(args){
+          // Check if sound is already being played.
+          let alreadyPlaying = args.game.sound._sounds.find(song => song.name === args.sound) ? true : false;
+          if(!alreadyPlaying){
+            if(args.stopOtherSounds){
+                args.game.sound.stopAll();
+            }
+            let playSound = args.game.sound.play(args.sound);
+            if(args.loop){
+                playSound.loopFull();
+            }
+        }
+    }
     };
 })();

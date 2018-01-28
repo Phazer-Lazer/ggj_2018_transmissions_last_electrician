@@ -62,6 +62,27 @@ const WorldManager = (function () {
       }
     },
 
+    createBattery (x, y, name) {
+      // battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
+      // battery.name = name;
+      battery = batteries.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'battery');
+      // game.physics.arcade.enable(player);
+      battery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+      battery.animations.play('glow');
+      battery.name = name;
+    },
+
+    createTerminal (x, y, activator) {
+      // Set terminal image based on wether or not it is delivered.
+      // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
+      // battery.name = name;
+      const terminal = terminals.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'terminalOff');
+      // game.physics.arcade.enable(player);
+
+      terminal.body.immovable = true;
+      terminal.activator = activator;
+    },
+
     level1Update() {
 
       walls = game.add.group();
@@ -117,6 +138,25 @@ const WorldManager = (function () {
         this.hPath(11, TILE_WIDTH*21, ((i + (this.levelHeight-6))* TILE_HEIGHT));
       }
 
+
+    },
+
+    level2Update(){
+
+      walls = game.add.group();
+      walls.enableBody = true;
+
+      paths = game.add.group();
+      paths.enableBody = true;
+
+      this.buildBorder();
+
+      this.vWall(10, TILE_WIDTH*8, TILE_HEIGHT*1);
+      this.vWall(4, TILE_WIDTH*8, TILE_HEIGHT*14);
+
+
+
+      
     },
   };
 })();
