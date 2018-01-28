@@ -22,7 +22,7 @@ let playerInventory = {
 
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
-let holes, movables, doors, hazards, ui;
+let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
 let lightsOn = true;
 
 let actionButton = false;
@@ -49,6 +49,8 @@ function preload() {
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('movable', 'assets/moveable_wall.png');
+  game.load.image('flashlight', 'assets/flashlight.png');
+  game.load.spritesheet('flashDying', 'assets/dying_flashlight.png', 64, 32);
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
@@ -209,6 +211,8 @@ const createHole = (x, y, activator) => {
 
 function create() {
 
+  graphics = game.add.graphics(100, 100);
+
   game.add.sprite(0, 0, 'intro');
 
   const electricMan = game.add.sprite(280, 72, 'electricMan');
@@ -280,14 +284,38 @@ const hideObjects = (player) => {
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
-const drawBatteryUI =() => {
-  const battery = ui.create(100, 100, 'hole')
-  hole.body.immovable = true;
-  hole.activator = activator
+const drawBatteryPercent = () => {
+
+  // Check if the text exists.  If it doesn't, create it.
+  if(typeof batteryFill === "undefined"){
+    batteryFill = game.add.text(65, 48, `%${PLAYER.curBatteryLife}`);
+    batteryFill.addColor("white", 0); //red
+  }
+  // Update battery life text
+  batteryFill.setText(`%${PLAYER.curBatteryLife}`);
+
+
+};
+
+const startDrainBattery = () => {
+  if(!PLAYER.batteryDraining){
+    PLAYER.batteryDraining = true;
+    continueDrainBattery();
+  }
+  if(PLAYER.curBatteryLife < 20){  
+    batteryUi.animations.play('flashDying');
+  }
+};
+
+const continueDrainBattery = () => {
+  setTimeout(() => {PLAYER.curBatteryLife -= 1; continueDrainBattery();}, 1000);
 };
 
 function render() {
   if (currentLevel !== 0) {
+    
+    // game.debug.renderRectangle(batteryFill,'#0fffff');
+
     player.body.width = 45;
     player.body.height = 45;
     //when facing right
@@ -320,61 +348,62 @@ function update() {
   cursors = game.input.keyboard.createCursorKeys();
   spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
+
+
   let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
 
   if (levelComplete && currentLevel === 0) {
 
-    drawBatteryUI();
-
+    
     currentLevel = 1;
-
+    
     // World Manager Creating Map
     const currentUpdateFunctionName = `level${currentLevel}Update`;
     WorldManager[currentUpdateFunctionName]();
-
-
+    
+    
     /*
-      Add Groups
+    Add Groups
     */
     batteries = game.add.group();
     batteries.enableBody = true;
-
+    
     terminals = game.add.group();
     terminals.enableBody = true;
-
+    
     breakers = game.add.group();
     breakers.enableBody = true;
 
     movables = game.add.group();
     movables.enableBody = true;
-
+    
     holes = game.add.group();
     holes.enableBody = true;
-
+    
     hazards = game.add.group();
     hazards.enableBody = true;
-
+    
     doors = game.add.group();
     doors.enableBody = true;
-
-    ui = game.add.group();
+    
+    
     
     /*
     Create Objects in Groups
     */
     createBattery(7, 16, "battery1");
     // createBattery(200, 300, "battery2");
-
+    
     createTerminal(21, 16, "battery1");
-
-  createMovable(10, 10);
-  createMovable(11, 11);
-
-
-  const holeX = 12;
-  const holeY = 10;
-  createHole(12, 10);
-
+    
+    createMovable(10, 10);
+    createMovable(11, 11);
+    
+    
+    const holeX = 12;
+    const holeY = 10;
+    createHole(12, 10);
+    
     createBreaker(10, 10, [
       {
         'function': EventManager.deactivateHazard,
@@ -407,12 +436,12 @@ function update() {
         }
       }
     ]);
-
+    
     createHazard(8, 8, "hazard1", "battery1");
-
+    
     createDoor(20, 2, 'door1');
     createDoor(20, 1, 'door2');
-
+    
     /*
     Create Player
     */
@@ -420,24 +449,28 @@ function update() {
     player.scale.setTo(2, 2);
     game.physics.arcade.enable(player);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
-
+    
+    batteryUi = game.add.sprite(30, 30, 'flashDying');
+    batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);  
+    batteryUi.scale.setTo(2, 2);
+    
   } else if (levelComplete && currentLevel === 1){
-      game.world.removeAll();
-
-      currentLevel += 1;
-
-      // World Manager Level 2 Creating Map
-      let currentUpdateFunctionName = `level${currentLevel}Update`;
-      WorldManager[currentUpdateFunctionName]();
-
-      batteries = game.add.group();
-      batteries.enableBody = true;
-
-      terminals = game.add.group();
-      terminals.enableBody = true;
-
-      breakers = game.add.group();
-      breakers.enableBody = true;
+    game.world.removeAll();
+    
+    currentLevel += 1;
+    
+    // World Manager Level 2 Creating Map
+    let currentUpdateFunctionName = `level${currentLevel}Update`;
+    WorldManager[currentUpdateFunctionName]();
+    
+    batteries = game.add.group();
+    batteries.enableBody = true;
+    
+    terminals = game.add.group();
+    terminals.enableBody = true;
+    
+    breakers = game.add.group();
+    breakers.enableBody = true;
 
       playerInventory = {
         batteries: [
@@ -553,5 +586,9 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     } else {
       player.animations.stop();
     }
+
+    
+    drawBatteryPercent();
+    startDrainBattery();
   }
 }

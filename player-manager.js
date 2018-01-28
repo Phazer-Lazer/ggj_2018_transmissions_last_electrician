@@ -8,6 +8,8 @@ const PlayerManager = (function () {
       SIGHT_DIST: 8 * 32, // 32 is TILE_HEIGHT & TILE_WIDTH
       LIGHT_HORIZONTAL: 35, // is smaller the smaller it is
       LIGHT_VERTICAL: 35, // Is smaller the larger it is
-      batteryLife: 102395bb9d
+      curBatteryLife: 30,
+      maxBatteryLife: 100,
+      batteryDraining: false
     };
 })();
