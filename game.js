@@ -40,9 +40,6 @@ const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   render
 });
 
-
-let actionButton = false;
-
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
