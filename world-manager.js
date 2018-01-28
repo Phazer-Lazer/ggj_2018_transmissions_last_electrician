@@ -1,6 +1,3 @@
-let paths;
-let path;
-
 let walls;
 let wall;
 
@@ -46,22 +43,6 @@ const WorldManager = (function () {
       }
     },
 
-    //function to create a horizontal path
-    hPath(num, x, y){
-      for(let p = 0; p < num; p++){
-        path = paths.create(TILE_WIDTH * x + (TILE_WIDTH * p), TILE_HEIGHT * y, 'path');
-        path.body.immovable = true;
-      }
-    },
-
-    //function to create a vertical path
-    vPath(num, x, y){
-      for(let p = 0; p < num; p++){
-        path = paths.create(TILE_WIDTH * x, TILE_HEIGHT * y + (TILE_HEIGHT * p), 'path');
-        path.body.immovable = true;
-      }
-    },
-
     createBattery (x, y, name) {
       // battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
       // battery.name = name;
@@ -84,14 +65,13 @@ const WorldManager = (function () {
     },
 
     level1Update() {
+      game.add.sprite(0, 0, 'floor')
 
       walls = game.add.group();
       walls.enableBody = true;
 
-      paths = game.add.group();
-      paths.enableBody = true;
-
       this.buildBorder();
+
       this.hWall(10, 5, 12);
 
       this.vWall(8, 20, 3);
@@ -100,167 +80,74 @@ const WorldManager = (function () {
       this.vWall(8, 20, 15);
       this.hWall(8, 21, 15);
 
-      //builds path top left of screeen
-      for(let i =1; i < 12; i++){
-        this.hPath(19, 1, i );
-      }
-
-      //builds paths next to horizontal wall on left
-      this.hPath(4, 1, 12);
-      this.hPath(5, 15, 12);
-
-      //build path bottom left
-      for(let i =1; i < 9; i++){
-        this.hPath(19, 1, (i+12));
-      }
-
-      //builds path on the right
-      for(let i =1; i < 21; i++){
-        this.hPath(7, 32, i );
-      }
-
-      //builds path between the two vertical walls
-      this.vPath(4, 20, 11);
-
-      //builds path above horizontal wall toward the top
-      for(let i =0; i < 2; i++){
-        this.hPath(12, 20, (i + 1));
-      }
-      //builds path under horizontal wall toward the top
-      for(let i =0; i < 11; i++){
-        this.hPath(11, 21, (i + 4));
-      }
-
-      //builds path under horizontal wall toward the bottom
-      this.hPath(3, 29, 15);
-
-      for(let i =0; i < 5; i++){
-        this.hPath(11, 21, i + (this.levelHeight-6));
-      }
-
-
+      
     },
 
     level2Update(){
-
+      game.add.sprite(0, 0, 'floor')
+      
       walls = game.add.group();
       walls.enableBody = true;
-
-      paths = game.add.group();
-      paths.enableBody = true;
 
       this.buildBorder();
 
       //builds game walls
-      this.vWall(11, 8, 1);
-      this.vWall(3, 8, 16);
-
-      this.hWall(1, 1, 9);
-      this.hWall(2, 6, 9);
-
-      this.hWall(6, 9, 7);
-      this.hWall(2, 12, 11);
-
-      this.vWall(9, 14, 8);
-      this.hWall(8, 14, 17);
+      this.vWall(7, 4, 1);
+      this.vWall(3, 4, 10);
+      this.vWall(9, 3, 12);
       
-      this.hWall(1, 26, 17);
-      this.vWall(4, 27, 17);
+      this.vWall(2, 7, 1);
+      this.vWall(3, 7, 5);
+      this.vWall(4, 6, 17);
+      this.hWall(2, 8, 5);
+      this.hWall(5, 14, 5);
 
-      this.hWall(5, 22, 9);
-      this.vWall(6, 21, 8);
-      this.vWall(5, 27, 9);
-      this.hWall(2, 25, 13);
+      this.vWall(9, 10, 1);
+      this.vWall(4, 10, 13);
+      this.hWall(17, 7, 17);
+      this.hWall(2, 22, 15);
+      this.hWall(2, 22, 16);
 
-      this.vWall(4, 21, 1);
-      this.hWall(2, 19, 8);
+      this.hWall(6, 13, 12);
+      this.hWall(1, 18, 11);
 
-      this.vWall(4, 25, 1);
-      this.hWall(5, 26, 4);
-      this.hWall(4, 35, 4);
+      this.vWall(4, 24, 5);
+      this.hWall(2, 25, 5);
+      this.vWall(8, 27, 1);
+      this.vWall(8, 28, 1);
+      this.hWall(8, 29, 1);
+      this.hWall(8, 29, 2);
+      this.hWall(2, 29, 8);
 
-      this.hWall(5, 28, 10);
-      this.hWall(5, 34, 15);
-
-      //builds game path
-      //top left
-      for(let i =1; i < 9; i++){
-        this.hPath(7, 1, i);
+      for(let i=0; i<3; i++){
+        this.hWall(6, 33, i+6);
       }
-      //bottom left
-      for(let i =0; i < 11; i++){
-        this.hPath(7, 1, i + 10);
-      }
-      //termial B box
-      for(let i =0; i < 3; i++){
-        this.hPath(5, 9, i + 8);
-      }
-      //bottom left- 2nd in
-      for(let i =0; i < 9; i++){
-        this.hPath(5, 9, i + 12);
-      }
-      //top left- 2nd in
-      for(let i =1; i < 7; i++){
-        this.hPath(12, 9, i);
-      }
-      this.hPath(6, 15, 7)      
-      for(let i =0; i < 8; i++){
-        this.hPath(6, 15, i+9);
-      }
-      //bottom narrow path
-      for(let i =0; i < 3; i++){
-        this.hPath(13, 14, i+18);
-      }
-      //2nd b terminal box
-      for(let i =0; i < 3; i++){
-        this.hPath(5, 22, i+10);
-      }
-      //bottom right
-      for(let i =0; i < 5; i++){
-        this.hPath(11, 28, i+16);
-      }                   
-      for(let i =0; i < 5; i++){
-        this.hPath(6, 28, i+11);
-      } 
-      //between narrow and b box 2
-      for(let i =0; i < 3; i++){
-        this.hPath(7, 21, i+14);
-      }  
-      for(let i =0; i < 4; i++){
-        this.hPath(17, 22, i+5);
-      }      
-      for(let i =0; i < 6; i++){
-        this.hPath(6, 33, i+9);
-      }
-      //top right   
-      for(let i =1; i < 4; i++){
-        this.hPath(13, 26, i);
-      }  
-      //2nd from right   
-      for(let i =1; i < 5; i++){
-        this.hPath(3, 22, i);
-      }
-      
-      this.hPath(4, 2, 9);
-      this.hPath(3, 9, 11);
-      this.hPath(4, 15, 8);
-      this.hPath(3, 22, 4);
-      this.hPath(4, 31, 4);
 
-      this.hPath(5, 28, 9);
-      this.hPath(3, 22, 13);
-      this.hPath(4, 22, 17);
+      this.vWall(10, 27, 11);
+      this.vWall(1, 26, 14);
 
-      this.vPath(4, 8, 12);
-      this.vPath(2, 8, 19);
-      this.vPath(3, 21, 5);
-      this.vPath(3, 27, 14);
-      
+      this.hWall(1, 30, 11);
+      this.hWall(1, 33, 11);
+      this.hWall(1, 36, 11);
 
+      this.hWall(1, 30, 14);
+      this.hWall(1, 33, 14);
+      this.hWall(1, 36, 14);
 
+      this.vWall(2, 30, 17);
+      this.vWall(2, 33, 17);
+      this.vWall(2, 36, 17);
 
+      this.hWall(2, 37, 17);
 
-      
     },
+    level3Update(){
+      game.add.sprite(0, 0, 'floor')
+      
+      walls = game.add.group();
+      walls.enableBody = true;
+
+      this.buildBorder();
+    }
   };
 })();

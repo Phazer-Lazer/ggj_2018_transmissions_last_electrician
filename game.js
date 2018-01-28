@@ -19,7 +19,7 @@ let levelLoading = false;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
-let lightsOn = false;
+let lightsOn = true;
 
 let actionButton = false;
 
@@ -37,6 +37,7 @@ function preload() {
   game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
   game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
   game.load.image('path', 'assets/path.png');
+  game.load.image('floor', 'assets/floor.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
@@ -62,8 +63,8 @@ const deliverObject = (name) => {
 };
 
 const disableScrollbar = () => {
-  window.addEventListener("keydown", function(e) {
-    if(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(e.key) > -1) {
+  window.addEventListener("keydown", function (e) {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(e.key) > -1) {
       e.preventDefault();
     }
   }, false);
@@ -86,14 +87,14 @@ const isCarryingNothing = () => {
 
 const pickupBattery = (player, battery) => {
   // If the player is carrying nothing, allow them to pickup a battery.
-  if(isCarryingNothing()){
+  if (isCarryingNothing()) {
     battery.kill();
     carryObject(battery.name, true);
   }
 };
 
 const interactTerminal = (player, terminal) => {
-  if(actionButton === true){
+  if (actionButton === true) {
     // Check if object has been delivered and player is carrying nothing, if so, exit.
     if (isDelivered(terminal.activator) || isCarryingNothing()) {
       return;
@@ -123,10 +124,10 @@ const interactTerminal = (player, terminal) => {
 };
 
 const interactBreaker = (player, breaker) => {
-  if(actionButton){
+  if (actionButton) {
     //check if the player has used action button on the breaker, if so turn on hazard
-    let  callbacks = breaker.callbackArray;
-    for(let i = 0; i < callbacks.length; i++){
+    let callbacks = breaker.callbackArray;
+    for (let i = 0; i < callbacks.length; i++) {
       callbacks[i]['function'](callbacks[i].args);
     }
   }
@@ -156,8 +157,8 @@ const isLevelComplete = () => {
   let batteriesDelivered = 0;
   // if a battery is delivered, att to delivered, then check if all batteries have been delivered to trigger a win condition.
 
-  for(let i = 0; i < batteryArray.length; i++){
-    if(batteryArray[i].delivered) batteriesDelivered ++;
+  for (let i = 0; i < batteryArray.length; i++) {
+    if (batteryArray[i].delivered) batteriesDelivered++;
   }
 
   return batteriesDelivered === batteryArray.length;
@@ -215,10 +216,10 @@ function create() {
   happyMusic.loopFull(1);
 }
 
-const getDistance = (obj1,obj2) => {
+const getDistance = (obj1, obj2) => {
   let a = obj1.x - obj2.x;
   let b = obj1.y - obj2.y;
-  return Math.abs(Math.sqrt(a*a + b*b));
+  return Math.abs(Math.sqrt(a * a + b * b));
 };
 
 const createDoor = (x, y, name) => {
@@ -227,11 +228,11 @@ const createDoor = (x, y, name) => {
   door.name = name;
 };
 
-const interactHazard = (player, hazard) =>  {
-  if(!hazard.deactivate){
+const interactHazard = (player, hazard) => {
+  if (!hazard.deactivate) {
     // Check if battery is delivered to terminal and therfore on
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
-    if(terminalOn){
+    if (terminalOn) {
       console.log('Shock.');
     }
   }
@@ -239,26 +240,26 @@ const interactHazard = (player, hazard) =>  {
 
 const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
-  if(obj.alive){
+  if (obj.alive) {
     let playerDir = player.angle;
 
-      let isHorizontal = (playerDir + 180)%180 === 0;
-      let isVertical = !isHorizontal;
-      let isInFrontOfPlayer = isHorizontal ?
-        Math.sign(obj.position.x - playerPosition.x) === Math.sign(playerDir + 1) :
-        Math.sign(obj.position.y - playerPosition.y) === Math.sign(playerDir);
+    let isHorizontal = (playerDir + 180) % 180 === 0;
+    let isVertical = !isHorizontal;
+    let isInFrontOfPlayer = isHorizontal ?
+      Math.sign(obj.position.x - playerPosition.x) === Math.sign(playerDir + 1) :
+      Math.sign(obj.position.y - playerPosition.y) === Math.sign(playerDir);
 
-      if (isInFrontOfPlayer) {
-        let dx = Math.abs(obj.position.x - playerPosition.x);
-        let dy = Math.abs(obj.position.y - playerPosition.y);
-        let theta = Math.atan2(dy, dx);
-        let degrees = theta * 180/Math.PI;
+    if (isInFrontOfPlayer) {
+      let dx = Math.abs(obj.position.x - playerPosition.x);
+      let dy = Math.abs(obj.position.y - playerPosition.y);
+      let theta = Math.atan2(dy, dx);
+      let degrees = theta * 180 / Math.PI;
 
-        let inFlashLightView = isHorizontal ?
-          degrees < PLAYER.LIGHT_HORIZONTAL : degrees > 90 - PLAYER.LIGHT_VERTICAL;// Light vertical is smalelr the larger it is by default, so invert it this way.
-        return inFlashLightView;
-      }
-      return false;
+      let inFlashLightView = isHorizontal ?
+        degrees < PLAYER.LIGHT_HORIZONTAL : degrees > 90 - PLAYER.LIGHT_VERTICAL;// Light vertical is smalelr the larger it is by default, so invert it this way.
+      return inFlashLightView;
+    }
+    return false;
   }
   return false;
 };
@@ -267,7 +268,7 @@ const hideObjects = (player) => {
   let playerPos = player.position;
 
   paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  batteries.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
+  batteries.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST && !isCarried(element.name) && !isDelivered(element.name));
   terminals.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   walls.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
@@ -279,8 +280,8 @@ const hideObjects = (player) => {
 
 function render() {
   // if (currentLevel !== 0) {
-  //   player.body.width = 20;
-  //   player.body.height = 20;
+    // player.body.width = 20;
+    // player.body.height = 20;
   //   player.body.x = player.x - 10;
   //   player.body.y = player.y;
   //
@@ -353,13 +354,13 @@ function update() {
 
     createTerminal(21, 16, "battery1");
 
-  createMovable(10, 10);
-  createMovable(11, 11);
+    createMovable(10, 10);
+    createMovable(11, 11);
 
 
-  const holeX = 12;
-  const holeY = 10;
-  createHole(12, 10);
+    const holeX = 12;
+    const holeY = 10;
+    createHole(12, 10);
 
     createBreaker(10, 10, [
       {
@@ -407,73 +408,82 @@ function update() {
     game.physics.arcade.enable(player);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
     levelLoading = false;
-  } else if (levelComplete && currentLevel === 1){
+  } else if (levelComplete && currentLevel === 1) {
     levelLoading = true;
-      game.world.removeAll();
+    game.world.removeAll();
 
-      currentLevel = 2;
+    currentLevel = 2;
 
-      // World Manager Level 2 Creating Map
-      let currentUpdateFunctionName = `level${currentLevel}Update`;
-      WorldManager[currentUpdateFunctionName]();
+    // World Manager Level 2 Creating Map
+    let currentUpdateFunctionName = `level${currentLevel}Update`;
+    WorldManager[currentUpdateFunctionName]();
 
-      batteries = game.add.group();
-      batteries.enableBody = true;
+    batteries = game.add.group();
+    batteries.enableBody = true;
 
-      terminals = game.add.group();
-      terminals.enableBody = true;
+    terminals = game.add.group();
+    terminals.enableBody = true;
 
-      breakers = game.add.group();
-      breakers.enableBody = true;
+    breakers = game.add.group();
+    breakers.enableBody = true;
 
-      playerInventory = {
-        batteries: [
-          {
-            'name': 'battery2',
-            'carried': false,
-            'delivered': false
-          },
-          {
-            'name': 'battery3',
-            'carried': false,
-            'delivered': false
-          },
-          {
-            'name': 'battery4',
-            'carried': false,
-            'delivered': false
-          },
-          {
-            'name': 'battery5',
-            'carried': false,
-            'delivered': false
-          }
-        ]
-      };
-      /*
-      Create Objects in Groups Level 2
-      */
-      createBattery(2, 15, "battery2");
-      // createBattery(18, 16, "battery3");
-      // createBattery(20, 16, "battery4");
-      // createBattery(30, 16, "battery5");
+    playerInventory = {
+      batteries: [
+        {
+          'name': 'battery2',
+          'carried': false,
+          'delivered': false
+        },
+        {
+          'name': 'battery3',
+          'carried': false,
+          'delivered': false
+        },
+        {
+          'name': 'battery4',
+          'carried': false,
+          'delivered': false
+        },
+        {
+          'name': 'battery5',
+          'carried': false,
+          'delivered': false
+        }
+      ]
+    };
+    /*
+    Create Objects in Groups Level 2
+    */
+    createBattery(2, 11, "battery2");
+    createBattery(8, 2, "battery3");
+    createBattery(11, 1, "battery4");
+    createBattery(28, 10, "battery5");
 
-      createTerminal(6, 16, "battery2");
+    createTerminal(1, 18, "battery2");
+    createTerminal(4, 18, "battery3");
+    createTerminal(7, 18, "battery4");
+    createTerminal(37, 18, "battery5");
 
 
   /*
       Create Player
-      */ player= game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero'); player.scale.setTo(2, 2);
-  game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
-  levelLoading = false;
-  } else if(isLevelComplete() && currentLevel === 2){
+      */ player = game.add.sprite(2 * TILE_WIDTH, 2 * TILE_HEIGHT, 'our_hero'); player.scale.setTo(2, 2);
+    game.physics.arcade.enable(player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
+    levelLoading = false;
+  } else if (isLevelComplete() && currentLevel === 2) {
     levelLoading = true;
-  game.world.removeAll();
+    game.world.removeAll();
 
-      currentLevel = 3;
-movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  levelLoading = false;
+    currentLevel = 3;
+
+    // World Manager Level 3 Creating Map
+    let currentUpdateFunctionName = `level${currentLevel}Update`;
+    WorldManager[currentUpdateFunctionName]();
+
+
+    movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+    holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+    levelLoading = false;
   }
 
   if (currentLevel !== 0 && !levelLoading) {
@@ -482,8 +492,8 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     }
 
 
-    if(isLevelComplete()){
-      console.log('Victory!');
+    if (isLevelComplete()) {
+      // console.log( 'Victory!');
     }
 
     /*
