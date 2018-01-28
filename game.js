@@ -180,9 +180,9 @@ function create() {
   /*
   Create Objects in Groups
   */
-  // createBattery(7, 16, "battery1");
+  createBattery(7, 16, "battery1");
   
-  // createTerminal(21, 16, "battery1");
+  createTerminal(21, 16, "battery1");
 
 
   /*
