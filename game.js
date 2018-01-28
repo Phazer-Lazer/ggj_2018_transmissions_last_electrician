@@ -12,11 +12,11 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    },
-    {
-      'name': 'battery2',
-      'carried': false,
-      'delivered': false
+    // },
+    // {
+    //   'name': 'battery2',
+    //   'carried': false,
+    //   'delivered': false
     }
   ]
 };
@@ -154,6 +154,7 @@ const interactBreaker = (player, breaker) => {
     for (let i = 0; i < callbacks.length; i++) {
       callbacks[i]['function'](callbacks[i].args);
     }
+    console.log(breaker.callbackArray);
   }
 };
 
@@ -267,6 +268,7 @@ const createDoor = (x, y, name) => {
 let playerShocked;
 
 const interactHazard = (player, hazard) =>  {
+  console.log(hazard.deactivate);
   if(!hazard.deactivate) {
     // Check if battery is delivered to terminal and therfore on
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
@@ -577,6 +579,11 @@ function update() {
           'name': 'battery5',
           'carried': false,
           'delivered': false
+        },
+        {
+          'name': 'hazardBattery',
+          'carried': false,
+          'delivered': true
         }
       ]
     };
@@ -592,6 +599,46 @@ function update() {
     createTerminal(4, 18, "battery3");
     createTerminal(7, 18, "battery4");
     createTerminal(37, 18, "battery5");
+
+    createDoor(4, 8, "door3");
+    createDoor(4, 9, "door4");
+
+    createBreaker(0, 9, [
+      {'function': EventManager.openDoor,
+      'args': {
+        'target': "door3",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }},
+      {'function': EventManager.openDoor,
+      'args': {
+        'target': "door4",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }}
+    ]);
+
+    createHazard(10,10, "hazard1", "hazardBattery");
+    createHazard(10,11, "hazard2", "hazardBattery");
+    createHazard(10,12, "hazard3", "hazardBattery");
+
+    createBreaker(9, 14, [
+      {
+        'function': EventManager.deactivateHazard,
+        'args': {
+          'target': "hazard1",
+          'targetGroup': hazards // The group of objects that contain the exact hazard
+        },
+        'function': EventManager.deactivateHazard,
+        'args': {
+          'target': "hazard2",
+          'targetGroup': hazards // The group of objects that contain the exact hazard
+        },
+        'function': EventManager.deactivateHazard,
+        'args': {
+          'target': "hazard3",
+          'targetGroup': hazards // The group of objects that contain the exact hazard
+        },
+      }
+    ]);
 
 
     /*
