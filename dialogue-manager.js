@@ -10,7 +10,7 @@ const DialogueManager = (function () {
             // h.getSM().play('txt');
             this.sNL();
           } else {
-            if (sentencePause >= 160) {
+            if (sentencePause >= 100) {
               this.rNS();
             } else {
               sentencePause++;

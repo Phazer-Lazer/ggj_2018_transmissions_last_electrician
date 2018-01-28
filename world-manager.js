@@ -124,7 +124,7 @@ const WorldManager = (function () {
       }
 
       //builds path between the two vertical walls
-      this.vPath(4, 20, 11);
+      this.vPath(2, 20, 13);
 
       //builds path above horizontal wall toward the top
       for(let i =0; i < 2; i++){

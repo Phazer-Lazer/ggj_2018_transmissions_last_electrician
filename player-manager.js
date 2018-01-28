@@ -1,6 +1,6 @@
 const PlayerManager = (function () {
     return {
-      SPEED: 250,
+      SPEED: 750,
       DIR_DOWN: 90,
       DIR_UP: -90,
       DIR_LEFT: -180,

@@ -302,6 +302,8 @@ const interactHazard = (player, hazard) =>  {
       player.angle = PLAYER.DIR_RIGHT;
       playerShocked = true;
       player.loadTexture('shocked');
+      player.scale.setTo(1.5, 1.5);
+      player.x -= 1.5 * TILE_WIDTH;
       player.animations.add('shock', [0, 1, 2, 3], 10, true);
       player.animations.play('shock');
 
@@ -429,12 +431,10 @@ function update() {
 
   levelComplete = false;
   levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
-  // levelComplete = currentLevel === 0 ? true : isLevelComplete();
 
   if (levelComplete && currentLevel === 0) {
     exitHit = false;
-    lightsOn = true;
-    console.log(1)
+
     levelLoading = true;
     game.world.removeAll();
     currentLevel = 1;
@@ -573,6 +573,7 @@ function update() {
 
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
+    lightsOn = true;
     exitHit = false;
     levelLoading = true;
     game.world.removeAll();
