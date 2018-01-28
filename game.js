@@ -158,10 +158,6 @@ function create() {
   createBattery(TILE_HEIGHT * 8, TILE_HEIGHT * 17, "battery1");
   createTerminal(TILE_WIDTH * 21, TILE_HEIGHT * 16, "battery1");
 
-
-
-
-
   /*
   Create Player
   */
