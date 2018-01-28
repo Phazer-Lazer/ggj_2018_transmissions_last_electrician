@@ -39,7 +39,7 @@ let level = 1;
 let currentLevel = level;
 
 let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
-let lightsOn = false;
+let lightsOn = true;
 
 let actionButton = false;
 
@@ -221,21 +221,27 @@ function create() {
 
   createBreaker(10, 10, [
     {
-    'function': EventManager.deactivateHazard, 
-    'target': "hazard",
-    'targetGroup': hazards // The group of objects that contain the exact hazard
+      'function': EventManager.deactivateHazard, 
+      'target': "hazard1",
+      'targetGroup': hazards // The group of objects that contain the exact hazard
     },
     {
       'function': EventManager.openDoor, 
       'target': "door1",
       'targetGroup': doors // The group of objects that contain the exact hazard
+    },
+    {
+      'function': EventManager.openDoor, 
+      'target': "door2",
+      'targetGroup': doors // The group of objects that contain the exact hazard
     }
   ]);
 
-  createHazard(8, 8, "hazard", "battery1");
+  createHazard(8, 8, "hazard1", "battery1");
 
-    createDoor(3, 3, 'door1');
-
+  createDoor(20, 2, 'door1');
+  createDoor(20, 1, 'door2');
+  
   /*
   Create Player
   */
