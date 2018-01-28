@@ -266,6 +266,21 @@ function update() {
             'name': 'battery2',
             'carried': false,
             'delivered': false
+          },
+          {
+            'name': 'battery3',
+            'carried': false,
+            'delivered': false
+          },
+          {
+            'name': 'battery4',
+            'carried': false,
+            'delivered': false
+          },
+          {
+            'name': 'battery5',
+            'carried': false,
+            'delivered': false
           }
         ]
       }
@@ -273,6 +288,9 @@ function update() {
       Create Objects in Groups
       */
       createBattery(7, 16, "battery2");
+      createBattery(18, 16, "battery3");
+      createBattery(20, 16, "battery4");
+      createBattery(30, 16, "battery5");
       
       createTerminal(21, 16, "battery2");
     
