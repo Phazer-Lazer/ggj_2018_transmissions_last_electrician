@@ -39,13 +39,15 @@ function preload() {
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
+  game.load.image('movable', 'assets/wall.png');
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
 }
 
 let currentLevel = 0;
-let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
+let player, cursors, spaceBar, batteries, terminals, breakers;
+let holes, movables, doors, hazards;
 let lightsOn = true;
 
 let actionButton = false;
@@ -85,13 +87,11 @@ const isCarryingNothing = () => {
 };
 
 const pickupBattery = (player, battery) => {
-  if(actionButton === true){
-    // If the player is carrying nothing, allow them to pickup a battery.
-    if(isCarryingNothing() ){
-      battery.kill();
-      carryObject(battery.name, true);
-    }
-}
+  // If the player is carrying nothing, allow them to pickup a battery.
+  if(isCarryingNothing()){
+    battery.kill();
+    carryObject(battery.name, true);
+  }
 };
 
 const interactTerminal = (player, terminal) => {
@@ -133,6 +133,14 @@ const interactBreaker = (player, breaker) => {
     }
   }
 };
+
+
+const fillHole = (movable, hole) => {
+  //check if the movable has collided with the hole. if so, then change hole to floor
+  movable.kill();
+  hole.kill()
+
+}
 
 const createBattery = (x, y, name) => {
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -185,6 +193,29 @@ const createBreaker = (x, y, callbackArray) => {
   breaker.callbackArray = callbackArray;
 };
 
+const createMovable = (x, y, activator) => {
+  const movable = movables.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'movable')
+  movable.body.immovable = false;
+  movable.activator = activator
+}
+
+const createHole = (x, y, activator) => {
+  const hole = holes.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'hole')
+  hole.body.immovable = true;
+  hole.activator = activator
+}
+
+
+function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.image('path', 'assets/path.png');
+  game.load.image('wall', 'assets/wall.png');
+  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
+  game.load.image('terminalOff', 'assets/terminal_off.png');
+  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 24, 70);
+  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.image('movable', 'assets/wall.png');
+}
 
 function create() {
 
@@ -286,12 +317,17 @@ function update() {
     breakers = game.add.group();
     breakers.enableBody = true;
 
+    movables = game.add.group();
+    movables.enableBody = true;
+
+    holes = game.add.group();
+    holes.enableBody = true;
+
     hazards = game.add.group();
     hazards.enableBody = true;
 
     doors = game.add.group();
     doors.enableBody = true;
-
 
     /*
     Create Objects in Groups
@@ -300,6 +336,14 @@ function update() {
     // createBattery(200, 300, "battery2");
 
     createTerminal(21, 16, "battery1");
+
+  createMovable(10, 10);
+  createMovable(11, 11);
+
+
+  const holeX = 12;
+  const holeY = 10;
+  createHole(12, 10);
 
     createBreaker(10, 10, [
       {
@@ -372,23 +416,17 @@ function update() {
       createTerminal(21, 16, "battery2");
 
 
-      /*
+  /*
       Create Player
-      */
-      player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
-      player.scale.setTo(2, 2);
-      game.physics.arcade.enable(player);
-      player.animations.add("walk", [0, 1, 2, 3], 10, true);
-
-
-
+      */ player= game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero'); player.scale.setTo(2, 2);
+  game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
   } else if(isLevelComplete() && currentLevel === 2){
-
-      game.world.removeAll();
-      console.log(currentLevel)
+  game.world.removeAll();
+  console.log(currentLevel)
 
       currentLevel += 1
-  }
+movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);}
 
   if (currentLevel !== 0) {
 
@@ -396,16 +434,27 @@ function update() {
       hideObjects(player);
     }
 
-    /*
-    Add Physics
-    */
-    game.physics.arcade.collide(player, walls);
-    game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
-    game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
-    game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+
+  if(isLevelComplete()){
+    console.log('Victory!');
+  }
+
+  /*
+  Add Physics
+  */
+  game.physics.arcade.collide(player, walls);
+  game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
+  game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
+  game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+    game.physics.arcade.collide(player, movables);
+    game.physics.arcade.collide(walls, movables);
+    game.physics.arcade.collide(movables, movables);
+    game.physics.arcade.collide(player, holes);
+    game.physics.arcade.collide(movables, holes, fillHole, null, this);
     game.physics.arcade.collide(player, hazards, interactHazard, null, this);
     game.physics.arcade.collide(player, doors, () => {
     }, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
+
 
 
     // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
