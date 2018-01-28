@@ -25,6 +25,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
+  game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
@@ -37,7 +38,7 @@ function preload() {
 let level = 1;
 let currentLevel = level;
 
-let player, cursors, spaceBar, batteries, terminals, breakers, hazards;
+let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
 let lightsOn = true;
 
 let actionButton = false;
@@ -177,6 +178,12 @@ const createBreaker = (x, y, callbackArray) => {
   breaker.callbackArray = callbackArray;
 };
 
+const createDoor = (x, y, name) => {
+  const door = doors.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'door');
+  door.body.immovable = true;
+  door.name = name;
+};
+
 
 function create() {
 
@@ -200,6 +207,9 @@ function create() {
   hazards = game.add.group();
   hazards.enableBody = true;
 
+  doors = game.add.group();
+  doors.enableBody = true;
+
 
   /*
   Create Objects in Groups
@@ -214,10 +224,17 @@ function create() {
     'function': EventManager.deactivateHazard, 
     'target': "hazard",
     'targetGroup': hazards // The group of objects that contain the exact hazard
+    },
+    {
+      'function': EventManager.openDoor, 
+      'target': "door1",
+      'targetGroup': doors // The group of objects that contain the exact hazard
     }
   ]);
 
   createHazard(8, 8, "hazard", "battery1");
+
+    createDoor(3, 3, 'door1');
 
   /*
   Create Player
@@ -295,6 +312,7 @@ function update() {
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
   game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
   game.physics.arcade.collide(player, hazards, interactHazard, null, this);
+  game.physics.arcade.collide(player, doors, () => {}, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
 
 
 
