@@ -221,11 +221,41 @@ const WorldManager = (function () {
       }                   
       for(let i =0; i < 5; i++){
         this.hPath(6, 28, i+11);
-      }                   
+      } 
+      //between narrow and b box 2
       for(let i =0; i < 3; i++){
         this.hPath(7, 21, i+14);
-      }                   
+      }  
+      for(let i =0; i < 4; i++){
+        this.hPath(17, 22, i+5);
+      }      
+      for(let i =0; i < 6; i++){
+        this.hPath(6, 33, i+9);
+      }
+      //top right   
+      for(let i =1; i < 4; i++){
+        this.hPath(13, 26, i);
+      }  
+      //2nd from right   
+      for(let i =1; i < 5; i++){
+        this.hPath(3, 22, i);
+      }
+      
+      this.hPath(4, 2, 9);
+      this.hPath(3, 9, 11);
+      this.hPath(4, 15, 8);
+      this.hPath(3, 22, 4);
+      this.hPath(4, 31, 4);
 
+      this.hPath(5, 28, 9);
+      this.hPath(3, 22, 13);
+      this.hPath(4, 22, 17);
+
+      this.vPath(4, 8, 12);
+      this.vPath(2, 8, 19);
+      this.vPath(3, 21, 5);
+      this.vPath(3, 27, 14);
+      
 
 
 
