@@ -23,7 +23,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let level = 1;
 let currentLevel = level;
-let player, cursors, batteries, terminals, breakers;
+let player, cursors, batteries, terminals, breakers, movables, holes ;
 let lightsOn = true;
 
 const carryObject = (name, value) => {
@@ -101,6 +101,14 @@ const interactBreaker = (player, breaker) => {
   //check if the player has used action button on the breaker, if so turn on hazard
 }
 
+
+const fillHole = (movable, hole) => {
+  //check if the movable has collided with the hole. if so, then change hole to floor
+  movable.kill();
+  hole.kill()
+
+}
+
 const createBattery = (x, y, name) => {
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
   // battery.name = name;
@@ -142,14 +150,28 @@ const createBreaker = (x, y, activator) => {
   breaker.activator = activator;
 };
 
+const createMovable = (x, y, activator) => {
+  const movable = movables.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'movable')
+  movable.body.immovable = false;
+  movable.activator = activator
+}
+
+const createHole = (x, y, activator) => {
+  const hole = holes.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'hole')
+  hole.body.immovable = true;
+  hole.activator = activator
+}
+
+
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
-  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 24, 70);
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.image('movable', 'assets/wall.png');
 }
 
 function create() {
@@ -171,6 +193,11 @@ function create() {
   breakers = game.add.group();
   breakers.enableBody = true;
 
+  movables = game.add.group();
+  movables.enableBody = true;
+
+  holes = game.add.group();
+  holes.enableBody = true;
 
   /*
   Create Objects in Groups
@@ -179,6 +206,14 @@ function create() {
   // createBattery(200, 300, "battery2");
 
   createTerminal(21, 16, "battery1");
+
+  createMovable(10, 10);
+  createMovable(11, 11);
+
+
+  const holeX = 12;
+  const holeY = 10;
+  createHole(12, 10);
 
 
   /*
@@ -227,6 +262,8 @@ const hideObjects = (player) => {
   terminals.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   walls.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 function update() {
@@ -247,6 +284,14 @@ function update() {
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
   game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+  game.physics.arcade.collide(player, movables);
+  game.physics.arcade.collide(walls, movables);
+  game.physics.arcade.collide(movables, movables);
+  game.physics.arcade.collide(player, holes);
+  game.physics.arcade.collide(movables, holes, fillHole, null, this);
+
+
+
 
 
 
