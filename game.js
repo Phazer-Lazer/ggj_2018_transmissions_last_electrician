@@ -21,10 +21,23 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
+
+function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
+  game.load.image('path', 'assets/path.png');
+  game.load.image('wall', 'assets/wall.png');
+  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
+  game.load.image('terminalOff', 'assets/terminal_off.png');
+  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
+  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+}
+
 let level = 1;
 let currentLevel = level;
 
-let player, cursors, spaceBar, batteries, terminals, breakers;
+let player, cursors, spaceBar, batteries, terminals, breakers, hazards;
 let lightsOn = true;
 
 let actionButton = false;
@@ -104,7 +117,13 @@ const interactTerminal = (player, terminal) => {
 };
 
 const interactBreaker = (player, breaker) => {
-  //check if the player has used action button on the breaker, if so turn on hazard
+  if(actionButton){
+    //check if the player has used action button on the breaker, if so turn on hazard
+    let  callbacks = breaker.callbackArray;
+    for(let i = 0; i < callbacks.length; i++){
+      callbacks[i]['function'](callbacks[i].objects, callbacks[i].options);
+    }
+  }
 }
 
 const createBattery = (x, y, name) => {
@@ -130,6 +149,14 @@ const isLevelComplete = () => {
   return batteriesDelivered === batteryArray.length;
 };
 
+const createHazard = (x, y, name) => {
+  const hazard = hazards.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'caution');
+  hazard.body.immovable = true;
+  hazard.name = name;
+  hazard.deactivate = false;
+  // hazard.callbackArray = callbackArray;
+};
+
 const createTerminal = (x, y, activator) => {
   // Set terminal image based on wether or not it is delivered.
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -141,23 +168,13 @@ const createTerminal = (x, y, activator) => {
   terminal.activator = activator;
 };
 
-const createBreaker = (x, y, activator) => {
+const createBreaker = (x, y, callbackArray) => {
 
   const breaker = breakers.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'breaker');
   breaker.body.immovable = true;
-  breaker.activator = activator;
+  breaker.callbackArray = callbackArray;
 };
 
-function preload() {
-  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
-  game.load.image('path', 'assets/path.png');
-  game.load.image('wall', 'assets/wall.png');
-  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
-  game.load.image('terminalOff', 'assets/terminal_off.png');
-  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
-  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
-}
 
 function create() {
 
@@ -178,6 +195,9 @@ function create() {
   breakers = game.add.group();
   breakers.enableBody = true;
 
+  hazards = game.add.group();
+  hazards.enableBody = true;
+
 
   /*
   Create Objects in Groups
@@ -187,7 +207,15 @@ function create() {
 
   createTerminal(21, 16, "battery1");
 
+  createBreaker(10, 10, [
+    {
+    'function': EventManager.deactivateHazard, 
+    'options': "hazard",
+    'objects': hazards
+    }
+  ]);
 
+  createHazard(8, 8, "hazard")
   /*
   Create Player
   */
@@ -198,6 +226,11 @@ function create() {
 
 }
 
+const interactHazard = (player, hazard) =>  {
+  if(!hazard.deactivate){
+    console.log('Shock.');
+  }
+}
 const getDistance = (obj1,obj2) => {
   let a = obj1.x - obj2.x;
   let b = obj1.y - obj2.y;
@@ -254,6 +287,7 @@ function update() {
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
   game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+  game.physics.arcade.collide(player, hazards, interactHazard, null, this);
 
 
 
