@@ -15,13 +15,14 @@ let playerInventory = {
   ]
 };
 
-const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
+const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   preload,
   create,
   update,
+  render
 });
 
-let level = 1;
+let level = 2;
 let currentLevel = level;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let lightsOn = true;
@@ -178,11 +179,13 @@ function create() {
   
   
   /*
-  Create Objects in Groups
+  Create Objects in Groups Level 1
   */
   createBattery(7, 16, "battery1");
   
   createTerminal(21, 16, "battery1");
+
+
 
 
   /*
@@ -233,8 +236,35 @@ const hideObjects = (player) => {
   breakers.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
-function update() {
+function render(){
+  player.body.width = 45;
+  player.body.height = 45;
+  //when facing right
+  // player.body.x = player.x - 33;
+  // player.body.y = player.y - 20;
+  //when facing left
+  // player.body.x = player.x - 10;
+  // player.body.y = player.y - 20;
+  //when facing up
+  player.body.x = player.x - 33;
+  player.body.y = player.y - 20;
 
+
+  // if(player.angle = PLAYER.DIR_RIGHT){
+  //   player.body.x = player.x - 33;
+  //   player.body.y = player.y - 20;
+  // } else if(player.angle = PLAYER.DIR_LEFT){
+    // player.body.width = 45;
+    // player.body.height = 45;
+    //   player.body.x = player.x ;
+    //   player.body.y = player.y ;
+    // }
+  
+  game.debug.body(player);
+}
+
+function update() {
+  
   if (!lightsOn) {
     hideObjects(player);
   }
@@ -285,14 +315,14 @@ function update() {
         ]
       }
       /*
-      Create Objects in Groups
+      Create Objects in Groups Level 2
       */
-      createBattery(7, 16, "battery2");
-      createBattery(18, 16, "battery3");
-      createBattery(20, 16, "battery4");
-      createBattery(30, 16, "battery5");
+      createBattery(2, 15, "battery2");
+      // createBattery(18, 16, "battery3");
+      // createBattery(20, 16, "battery4");
+      // createBattery(30, 16, "battery5");
       
-      createTerminal(21, 16, "battery2");
+      createTerminal(6, 16, "battery2");
     
     
       /*
