@@ -3,6 +3,7 @@
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
+
 const PLAYER = PlayerManager;
 
 let playerInventory = {
@@ -16,13 +17,11 @@ let playerInventory = {
 };
 
 let levelLoading = false;
+let dialogueText;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
 let lightsOn = true;
-
-let actionButton = false;
-
 
 const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   preload,
@@ -31,6 +30,8 @@ const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   render
 });
 
+
+let actionButton = false;
 
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
@@ -389,6 +390,19 @@ function update() {
     game.physics.arcade.enable(player);
     player.body.setSize(12, 12, 10, 14);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
+
+    dialogueText = game.add.text(
+      game.width - DialogueManager.boxWidth() - DialogueManager.margin(),
+      DialogueManager.margin(),
+      '',
+      { fontSize: '48px', fill: '#CC0' }
+    );
+
+    DialogueManager.aW('[Your Walkie Talkie buzzes]');
+    DialogueManager.aW('Leeroy! Hot Rob here!');
+    DialogueManager.aW('I know it\'s your first day on the job...');
+    DialogueManager.aW('But you gonna learn today!');
+
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1) {
     levelLoading = true;
@@ -485,6 +499,10 @@ function update() {
   }
 
   if (currentLevel !== 0 && !levelLoading) {
+
+    DialogueManager.tick();
+    dialogueText.text = DialogueManager.getDialogueText();
+
     if (!lightsOn) {
       hideObjects(player);
     }
