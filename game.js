@@ -12,6 +12,11 @@ let playerInventory = {
       'carried': false,
       'delivered': false
     },
+    {
+      'name': 'battery2',
+      'carried': false,
+      'delivered': false
+    }
   ]
 };
 
@@ -21,6 +26,8 @@ let player, cursors, spaceBar, batteries, terminals, breakers;
 
 let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
 let lightsOn = true;
+
+let flashlightFlicker = false;
 
 
 let actionButton = false;
@@ -245,7 +252,12 @@ const interactHazard = (player, hazard) =>  {
 
 const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
-  if(obj.alive){
+  if(obj.alive && PLAYER.curBatteryLife > 0){
+    if(PLAYER.curBatteryLife < PLAYER.BATTERY_FLICKER){
+      if(flashlightFlicker){
+        return;
+      }
+    }
     let playerDir = player.angle;
 
       let isHorizontal = (playerDir + 180)%180 === 0;
@@ -270,6 +282,9 @@ const isVisible = (obj, playerPosition) => {
 };
 
 const hideObjects = (player) => {
+
+  flashlightFlicker = !flashlightFlicker;
+
   let playerPos = player.position;
 
   paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
@@ -280,6 +295,10 @@ const hideObjects = (player) => {
   doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  
+  holes.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  
+  movables.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 const drawBatteryPercent = () => {
@@ -300,13 +319,24 @@ const startDrainBattery = () => {
     PLAYER.batteryDraining = true;
     continueDrainBattery();
   }
-  if(PLAYER.curBatteryLife < 20){  
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_DYING){  
     batteryUi.animations.play('flashDying');
+  }
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_FALL){  
+    PLAYER.SIGHT_DIST = (PLAYER.curBatteryLife+1) * 32;
+  }
+  if(PLAYER.curBatteryLife === 0){
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
   }
 };
 
 const continueDrainBattery = () => {
-  setTimeout(() => {PLAYER.curBatteryLife -= 1; continueDrainBattery();}, 1000);
+  setTimeout(() => {
+    if(!lightsOn && PLAYER.curBatteryLife > 0) PLAYER.curBatteryLife -= 1; 
+    continueDrainBattery();
+  }, 1000);
 };
 
 function render() {
@@ -428,7 +458,7 @@ function update() {
         }
       },
       {
-        'function': () => {lightsOn = !lightsOn;},
+        'function': () => {lightsOn = false;},
         'args': {}
       }
     ]);
