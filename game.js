@@ -19,12 +19,8 @@ let levelLoading = false;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
-<<<<<<< HEAD
 let batteryIcons;
-let lightsOn = true;
-=======
 let lightsOn = false;
->>>>>>> master
 
 let actionButton = false;
 
@@ -49,13 +45,9 @@ function preload() {
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
-<<<<<<< HEAD
   game.load.image('movable', 'assets/wall.png');
   game.load.spritesheet('batteryIcon', 'assets/battery_glow.png', 52, 35);
 
-=======
-  game.load.image('movable', 'assets/moveable_wall.png');
->>>>>>> master
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
@@ -299,7 +291,7 @@ const hideObjects = (player) => {
   doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  batteryIcons.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  // batteryIcons.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 
