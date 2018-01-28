@@ -60,6 +60,7 @@ function preload() {
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
   game.load.audio('scream', 'sounds/scream.wav');
+  game.load.audio('zap', 'sounds/zap.wav');
 }
 
 const carryObject = (name, value) => {
@@ -247,6 +248,10 @@ const interactHazard = (player, hazard) =>  {
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
     if(terminalOn){
       console.log('Shock.');
+      EventManager.playSound({
+        'game': game,
+        'sound': 'zap'
+      });
     }
   }
 };
