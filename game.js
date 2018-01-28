@@ -50,7 +50,7 @@ let level = 1;
 let currentLevel = level;
 
 let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
-let lightsOn = false;
+let lightsOn = true;
 >>>>>>> Fix issue showing killed objects with flashlight.
 
 let actionButton = false;
@@ -249,19 +249,19 @@ const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
   if(obj.alive){
     let playerDir = player.angle;
-    
+
       let isHorizontal = (playerDir + 180)%180 === 0;
       let isVertical = !isHorizontal;
       let isInFrontOfPlayer = isHorizontal ?
         Math.sign(obj.position.x - playerPosition.x) === Math.sign(playerDir + 1) :
         Math.sign(obj.position.y - playerPosition.y) === Math.sign(playerDir);
-    
+
       if (isInFrontOfPlayer) {
         let dx = Math.abs(obj.position.x - playerPosition.x);
         let dy = Math.abs(obj.position.y - playerPosition.y);
         let theta = Math.atan2(dy, dx);
         let degrees = theta * 180/Math.PI;
-    
+
         let inFlashLightView = isHorizontal ?
           degrees < 50 : degrees > 40;
         return inFlashLightView;
@@ -294,6 +294,7 @@ function update() {
 
   if (levelComplete && currentLevel === 0) {
     currentLevel = 1;
+
     // World Manager Creating Map
     const currentUpdateFunctionName = `level${currentLevel}Update`;
     WorldManager[currentUpdateFunctionName]();
@@ -329,19 +330,25 @@ function update() {
     createBreaker(10, 10, [
       {
         'function': EventManager.deactivateHazard,
-        'target': "hazard",
+        'target': "hazard1",
         'targetGroup': hazards // The group of objects that contain the exact hazard
       },
       {
         'function': EventManager.openDoor,
         'target': "door1",
         'targetGroup': doors // The group of objects that contain the exact hazard
+      },
+      {
+        'function': EventManager.openDoor,
+        'target': "door2",
+        'targetGroup': doors // The group of objects that contain the exact hazard
       }
     ]);
 
-    createHazard(8, 8, "hazard", "battery1");
+    createHazard(8, 8, "hazard1", "battery1");
 
-    createDoor(3, 3, 'door1');
+    createDoor(20, 2, 'door1');
+    createDoor(20, 1, 'door2');
 
     /*
     Create Player
