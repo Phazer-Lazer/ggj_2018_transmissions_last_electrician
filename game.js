@@ -26,6 +26,20 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
+
+function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
+  game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
+  game.load.image('path', 'assets/path.png');
+  game.load.image('wall', 'assets/wall.png');
+  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
+  game.load.image('terminalOff', 'assets/terminal_off.png');
+  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
+  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+}
+
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, doors, breakers;
 let hazards;
@@ -168,20 +182,6 @@ const createBreaker = (x, y, callbackArray) => {
   breaker.callbackArray = callbackArray;
 };
 
-function preload() {
-  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
-  game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
-  game.load.image('path', 'assets/path.png');
-  game.load.image('wall', 'assets/wall.png');
-  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
-  game.load.image('terminalOff', 'assets/terminal_off.png');
-  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
-  game.load.image('intro', 'assets/intro_screen.png');
-  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
-
-  game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
-}
 
 function create() {
 
@@ -209,6 +209,13 @@ const getDistance = (obj1,obj2) => {
   let b = obj1.y - obj2.y;
   return Math.abs(Math.sqrt(a*a + b*b));
 };
+
+const createDoor = (x, y, name) => {
+  const door = doors.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'door');
+  door.body.immovable = true;
+  door.name = name;
+};
+
 
 const isVisible = (position, playerPosition) => {
   let playerDir = player.angle;
@@ -274,23 +281,31 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
-    createBreaker(10, 10, [
-      {
-        'function': EventManager.deactivateHazard,
-        'options': "hazard",
-        'objects': hazards
-      }
-    ]);
-
-    createHazard(8, 8, "hazard", 'battery1');
 
     /*
     Create Objects in Groups
     */
     createBattery(7, 16, "battery1");
+    // createBattery(200, 300, "battery2");
 
     createTerminal(21, 16, "battery1");
 
+    createBreaker(10, 10, [
+      {
+        'function': EventManager.deactivateHazard,
+        'target': "hazard",
+        'targetGroup': hazards // The group of objects that contain the exact hazard
+      },
+      {
+        'function': EventManager.openDoor,
+        'target': "door1",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }
+    ]);
+
+    createHazard(8, 8, "hazard", "battery1");
+
+    createDoor(3, 3, 'door1');
 
     /*
     Create Player
@@ -299,6 +314,7 @@ function update() {
     player.scale.setTo(2, 2);
     game.physics.arcade.enable(player);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
+
   } else if (levelComplete && currentLevel === 1){
       game.world.removeAll();
 
@@ -357,9 +373,9 @@ function update() {
 
   if (currentLevel !== 0) {
 
-    if (!lightsOn) {
-      hideObjects(player);
-    }
+  if (!lightsOn) {
+    hideObjects(player);
+  }
 
     /*
     Add Physics
@@ -369,50 +385,45 @@ function update() {
     game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
     game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
   game.physics.arcade.collide(player, hazards, interactHazard, null, this);
+  game.physics.arcade.collide(player, doors, () => {}, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
 
 
     // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
     disableScrollbar();
 
-    // Reset player velocity in each direction so you can't move on angles
-    player.body.velocity.x = 0;
-    player.body.velocity.y = 0;
+  // Reset player velocity in each direction so you can't move on angles
+  player.body.velocity.x = 0;
+  player.body.velocity.y = 0;
 
-    // Set player anchor to center rotation
-    player.anchor.setTo(0.5, 0.5);
+  // Set player anchor to center rotation
+  player.anchor.setTo(0.5, 0.5);
 
-    // Initialize cursor to listen to keyboard input
-    cursors = game.input.keyboard.createCursorKeys();
-    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    ;
+  // Initialize cursor to listen to keyboard input
+  cursors = game.input.keyboard.createCursorKeys();
+  spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);;
 
-    if (spaceBar.isDown) {
-      actionButton = true;
-    } else {
-      actionButton = false;
-    }
+  actionButton = spaceBar.isDown;
 
-    if (cursors.left.isDown) {//  Move to the left
-      player.body.velocity.x = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_LEFT;
-      player.animations.play('walk');
-    }
-    else if (cursors.right.isDown) {//  Move to the right
-      player.body.velocity.x = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_RIGHT;
-      player.animations.play('walk');
-    }
-    else if (cursors.up.isDown) {//  Move to the left
-      player.body.velocity.y = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_UP;
-      player.animations.play('walk');
-    }
-    else if (cursors.down.isDown) {//  Move to the right
-      player.body.velocity.y = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_DOWN;
-      player.animations.play('walk');
-    } else {
-      player.animations.stop();
-    }
+  if (cursors.left.isDown){//  Move to the left
+    player.body.velocity.x = -PLAYER.SPEED;
+    player.angle = PLAYER.DIR_LEFT;
+    player.animations.play('walk');
+  }
+  else if (cursors.right.isDown){//  Move to the right
+    player.body.velocity.x = PLAYER.SPEED;
+    player.angle = PLAYER.DIR_RIGHT;
+    player.animations.play('walk');
+  }
+  else if (cursors.up.isDown){//  Move to the left
+    player.body.velocity.y = -PLAYER.SPEED;
+    player.angle = PLAYER.DIR_UP;
+    player.animations.play('walk');
+  }
+  else if (cursors.down.isDown){//  Move to the right
+    player.body.velocity.y = PLAYER.SPEED;
+    player.angle = PLAYER.DIR_DOWN;
+    player.animations.play('walk');
+  } else {
+    player.animations.stop();
   }
 }
