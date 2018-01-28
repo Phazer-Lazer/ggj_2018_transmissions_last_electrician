@@ -24,6 +24,9 @@ const EventManager = (function () {
                 playSound.loopFull();
             }
         }
+    },
+    toggleLights(args) {
+        args.light = !args.light;
     }
     };
 })();

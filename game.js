@@ -434,6 +434,10 @@ function update() {
           'loop': false, // The group of objects that contain the exact hazard
           'stopOtherSounds': true
         }
+      },
+      {
+        'function': () => {lightsOn = !lightsOn;},
+        'args': {}
       }
     ]);
     
