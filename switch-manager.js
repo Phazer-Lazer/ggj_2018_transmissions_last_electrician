@@ -7,7 +7,7 @@ const EventManager = (function () {
           console.log('Opened.');
       },
       deactivateHazard(args){
-          // Find individual hazard object off of hazards group
+          // Find individual hazard object off o    f hazards group
           let hazard = args.targetGroup.children.find(child => child.name === args.target);
           hazard.deactivate = true;
           console.log('Deactivated');
