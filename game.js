@@ -39,7 +39,7 @@ let level = 1;
 let currentLevel = level;
 
 let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
-let lightsOn = true;
+let lightsOn = false;
 
 let actionButton = false;
 
@@ -312,7 +312,7 @@ const isVisible = (obj, playerPosition) => {
         let degrees = theta * 180/Math.PI;
     
         let inFlashLightView = isHorizontal ?
-          degrees < 50 : degrees > 40;
+          degrees < PLAYER.LIGHT_HORIZONTAL : degrees > 90 - PLAYER.LIGHT_VERTICAL;// Light vertical is smalelr the larger it is by default, so invert it this way.
         return inFlashLightView;
       }
       return false;
