@@ -1,4 +1,4 @@
-let walls;
+let walls, paths;
 
 const WorldManager = (function () {
   return {
@@ -46,8 +46,7 @@ const WorldManager = (function () {
         }
       };
 
-
-      let paths = game.add.group();
+      paths = game.add.group();
       paths.enableBody = true;
 
       //function to create a horizontal path

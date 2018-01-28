@@ -3,6 +3,8 @@
 const TILE_HEIGHT = 32;
 const TILE_WIDTH = 32;
 
+const PLAYER = PlayerManager;
+
 let playerInventory = {
   batteries: [
   {
@@ -26,7 +28,6 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let level = 1;
 let currentLevel = level;
-
 let player, cursors, batteries, terminals;
 
 const carryObject = (name, value) => {
@@ -130,6 +131,7 @@ function preload() {
 }
 
 function create() {
+
   // World Manager Creating Map
   const currentUpdateFunctionName = `level${currentLevel}Update`;
   WorldManager[currentUpdateFunctionName]();
@@ -158,14 +160,61 @@ function create() {
   /*
   Create Player
   */
-  player = game.add.sprite(9 * TILE_HEIGHT, 16 * TILE_WIDTH, 'our_hero');
+  player = game.add.sprite(9 * TILE_WIDTH, 16 * TILE_HEIGHT, 'our_hero');
   player.scale.setTo(2, 2);
   game.physics.arcade.enable(player);
   player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
 }
 
+const getDistance = (obj1,obj2) => {
+  let a = obj1.x - obj2.x;
+  let b = obj1.y - obj2.y;
+  return Math.abs(Math.sqrt(a*a + b*b));
+};
+
+const isVisible = (position, playerPosition) => {
+  let playerDir = player.angle;
+
+  let isHorizontal = (playerDir + 180)%180 === 0;
+  let isVertical = !isHorizontal;
+  let isInFrontOfPlayer = isHorizontal ?
+    Math.sign(position.x - playerPosition.x) === Math.sign(playerDir + 1) :
+    Math.sign(position.y - playerPosition.y) === Math.sign(playerDir);
+
+  if (isInFrontOfPlayer) {
+    let dx = Math.abs(position.x - playerPosition.x);
+    let dy = Math.abs(position.y - playerPosition.y);
+    let theta = Math.atan2(dy, dx);
+    let degrees = theta * 180/Math.PI;
+  
+    let inFlashLightView = isHorizontal ?
+      degrees < 30 : degrees > 60;
+    return inFlashLightView;
+  }
+  return false;
+};
+
+const hideObjects = (player) => {
+  let playerPos = player.position;
+
+  // if(calcDistance(batteries.children[0].position, player.position) > 150){
+  //   batteries.children[0].visible = false;
+  //     } else {
+  //       batteries.children[0].visible = true;
+  //     }
+
+  paths.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  batteries.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
+  terminals.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  walls.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+
+};
+
 function update() {
+
+   hideObjects(player);
+
 
   if(isLevelComplete()){
     console.log('Victory!');
@@ -178,7 +227,7 @@ function update() {
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
 
-  const PLAYER = PlayerManager;
+
 
   // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
   disableScrollbar();
