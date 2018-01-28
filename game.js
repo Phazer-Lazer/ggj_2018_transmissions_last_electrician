@@ -22,7 +22,7 @@ let playerInventory = {
 
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
-let holes, movables, doors, hazards;
+let holes, movables, doors, hazards, ui;
 let lightsOn = true;
 
 let actionButton = false;
@@ -48,6 +48,7 @@ function preload() {
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
+  game.load.image('movable', 'assets/wall.png');
   game.load.image('movable', 'assets/wall.png');
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
@@ -280,6 +281,11 @@ const hideObjects = (player) => {
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
+const drawBatteryUI =() => {
+  const battery = ui.create(100, 100, 'hole')
+  hole.body.immovable = true;
+  hole.activator = activator
+};
 
 function render() {
   if (currentLevel !== 0) {
@@ -318,6 +324,9 @@ function update() {
   let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
 
   if (levelComplete && currentLevel === 0) {
+
+    drawBatteryUI();
+
     currentLevel = 1;
 
     // World Manager Creating Map
@@ -349,6 +358,8 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
+    ui = game.add.group();
+    
     /*
     Create Objects in Groups
     */
