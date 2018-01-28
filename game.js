@@ -12,18 +12,14 @@ let playerInventory = {
       'carried': false,
       'delivered': false
     },
-    {
-      'name': 'battery3331',
-      'carried': false,
-      'delivered': false
-    },
   ]
 };
 
+let levelLoading = false;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
-let lightsOn = true;
+let lightsOn = false;
 
 let actionButton = false;
 
@@ -282,31 +278,27 @@ const hideObjects = (player) => {
 
 
 function render() {
-  if (currentLevel !== 0) {
-    player.body.width = 45;
-    player.body.height = 45;
-    //when facing right
-    // player.body.x = player.x - 33;
-    // player.body.y = player.y - 20;
-    //when facing left
-    // player.body.x = player.x - 10;
-    // player.body.y = player.y - 20;
-    //when facing up
-    player.body.x = player.x - 33;
-    player.body.y = player.y - 20;
-
-
-    // if(player.angle = PLAYER.DIR_RIGHT){
-    //   player.body.x = player.x - 33;
-    //   player.body.y = player.y - 20;
-    // } else if(player.angle = PLAYER.DIR_LEFT){
-    // player.body.width = 45;
-    // player.body.height = 45;
-    //   player.body.x = player.x ;
-    //   player.body.y = player.y ;
-    // }
-
-    // game.debug.body(player);
+  // if (currentLevel !== 0) {
+  //   player.body.width = 20;
+  //   player.body.height = 20;
+  //   player.body.x = player.x - 10;
+  //   player.body.y = player.y;
+  //
+  //   // console.log(player.body.facing);
+  //
+  //   switch (player.angle) {
+  //     case PLAYER.DIR_UP:
+  //
+  //       break;
+  //     case PLAYER.DIR_RIGHT:
+  //       break;
+  //     case PLAYER.DIR_DOWN:
+  //       break;
+  //     case PLAYER.DIR_LEFT:
+  //       break;
+  //   }
+  //
+  //   game.debug.body(player);
   }
 }
 
@@ -315,9 +307,13 @@ function update() {
   cursors = game.input.keyboard.createCursorKeys();
   spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-  let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
+  // let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
+  let levelComplete = currentLevel === 0 ? true : isLevelComplete();
 
   if (levelComplete && currentLevel === 0) {
+
+    levelLoading = true;
+    game.world.removeAll();
     currentLevel = 1;
 
     // World Manager Creating Map
@@ -410,11 +406,12 @@ function update() {
     player.scale.setTo(2, 2);
     game.physics.arcade.enable(player);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
-
+    levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
+    levelLoading = true;
       game.world.removeAll();
 
-      currentLevel += 1;
+      currentLevel = 2;
 
       // World Manager Level 2 Creating Map
       let currentUpdateFunctionName = `level${currentLevel}Update`;
@@ -468,32 +465,35 @@ function update() {
       Create Player
       */ player= game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero'); player.scale.setTo(2, 2);
   game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
+  levelLoading = false;
   } else if(isLevelComplete() && currentLevel === 2){
+    levelLoading = true;
   game.world.removeAll();
-  console.log(currentLevel)
 
-      currentLevel += 1
+      currentLevel = 3;
 movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);}
+  holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  levelLoading = false;
+  }
 
-  if (currentLevel !== 0) {
-
+  if (currentLevel !== 0 && !levelLoading) {
+    console.log({currentLevel});
     if (!lightsOn) {
       hideObjects(player);
     }
 
 
-  if(isLevelComplete()){
-    console.log('Victory!');
-  }
+    if(isLevelComplete()){
+      console.log('Victory!');
+    }
 
-  /*
-  Add Physics
-  */
-  game.physics.arcade.collide(player, walls);
-  game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
-  game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
-  game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+    /*
+    Add Physics
+    */
+    game.physics.arcade.collide(player, walls);
+    game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
+    game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
+    game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
     game.physics.arcade.collide(player, movables);
     game.physics.arcade.collide(walls, movables);
     game.physics.arcade.collide(movables, movables);
