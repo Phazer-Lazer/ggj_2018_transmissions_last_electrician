@@ -13,15 +13,28 @@ let playerInventory = {
       'carried': false,
       'delivered': false
     },
+    {
+      'name': 'battery2',
+      'carried': false,
+      'delivered': false
+    }
   ]
 };
 
+let deathInterval;
 let levelLoading = false;
 let dialogueText;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
-let holes, movables, doors, hazards;
+let batteryIcons;
+let shocked;
+
+let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
 let lightsOn = true;
+
+let flashlightFlicker = false;
+let actionButton = false;
+
 
 const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   preload,
@@ -29,9 +42,6 @@ const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   update,
   render
 });
-
-
-let actionButton = false;
 
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
@@ -47,10 +57,20 @@ function preload() {
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('movable', 'assets/moveable_wall.png');
+  game.load.image('flashlight', 'assets/flashlight.png');
+  game.load.spritesheet('flashDying', 'assets/dying_flashlight.png', 64, 32);
+  game.load.image('movable', 'assets/wall.png');
+  game.load.spritesheet('batteryIcon', 'assets/battery_glow.png', 52, 35);
+  game.load.spritesheet('shocked', 'assets/electrocuted.png', 64, 64);
+
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
+  game.load.audio('scream', 'sounds/scream.wav');
+  game.load.audio('zap', 'sounds/zap.wav');
 }
+
+
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -92,6 +112,7 @@ const pickupBattery = (player, battery) => {
     battery.kill();
     carryObject(battery.name, true);
   }
+  createBatteryIcon();
 };
 
 const interactTerminal = (player, terminal) => {
@@ -109,6 +130,8 @@ const interactTerminal = (player, terminal) => {
       terminal.loadTexture('terminalOn');
       terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
       terminal.animations.play('on');
+
+      batteryIcon.kill();
 
       let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
       newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
@@ -205,7 +228,19 @@ const createHole = (x, y, activator) => {
   hole.activator = activator
 }
 
+let batteryIcon;
+
+const createBatteryIcon = () => {
+  batteryIcon = batteryIcons.create(38 * TILE_WIDTH, 0.5 * TILE_HEIGHT, 'batteryIcon')
+  batteryIcon.body.immovable = true;
+  batteryIcon.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+  batteryIcon.animations.play('glow');
+}
+
+
 function create() {
+
+  graphics = game.add.graphics(100, 100);
 
   game.add.sprite(0, 0, 'intro');
 
@@ -229,19 +264,37 @@ const createDoor = (x, y, name) => {
   door.name = name;
 };
 
-const interactHazard = (player, hazard) => {
-  if (!hazard.deactivate) {
+let playerShocked;
+
+const interactHazard = (player, hazard) =>  {
+  if(!hazard.deactivate) {
     // Check if battery is delivered to terminal and therfore on
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
     if (terminalOn) {
-      console.log('Shock.');
+      player.angle = PLAYER.DIR_RIGHT;
+      playerShocked = true;
+      player.loadTexture('shocked');
+      player.animations.add('shock', [0, 1, 2, 3], 10, true);
+      player.animations.play('shock');
+
+      EventManager.playSound({
+        'game': game,
+        'sound': 'zap'
+      });
+
+      killPlayer();
     }
   }
 };
 
 const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
-  if (obj.alive) {
+  if(obj.alive && PLAYER.curBatteryLife > 0){
+    if(PLAYER.curBatteryLife < PLAYER.BATTERY_FLICKER){
+      if(flashlightFlicker){
+        return;
+      }
+    }
     let playerDir = player.angle;
 
     let isHorizontal = (playerDir + 180) % 180 === 0;
@@ -266,6 +319,9 @@ const isVisible = (obj, playerPosition) => {
 };
 
 const hideObjects = (player) => {
+
+  flashlightFlicker = !flashlightFlicker;
+
   let playerPos = player.position;
 
   paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
@@ -276,8 +332,61 @@ const hideObjects = (player) => {
   doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+
+  holes.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+
+  movables.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
+const drawBatteryPercent = () => {
+
+  // Check if the text exists.  If it doesn't, create it.
+  if(typeof batteryFill === "undefined"){
+    batteryFill = game.add.text(65, 48, `%${PLAYER.curBatteryLife}`);
+    batteryFill.addColor("white", 0); //red
+  }
+  // Update battery life text
+  batteryFill.setText(`%${PLAYER.curBatteryLife}`);
+
+
+};
+
+const killPlayer = () => {
+  console.log('kill');
+
+  EventManager.playSound({
+    'sound': 'scream',
+    'game': game
+  });
+
+  setTimeout(() => {
+    player.visible = false;
+    location.reload();
+  }, 5000);
+};
+
+const startDrainBattery = () => {
+  if(!PLAYER.batteryDraining){
+    PLAYER.batteryDraining = true;
+    continueDrainBattery();
+  }
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_DYING){
+    batteryUi.animations.play('flashDying');
+  }
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_FALL){
+    PLAYER.SIGHT_DIST = (PLAYER.curBatteryLife+1) * 32;
+  }
+  if(PLAYER.curBatteryLife === 0){
+    killPlayer();
+  }
+};
+
+const continueDrainBattery = () => {
+  setTimeout(() => {
+    if(!lightsOn && PLAYER.curBatteryLife > 0) PLAYER.curBatteryLife -= 1;
+    continueDrainBattery();
+  }, 1000);
+};
 
 function render() {
   if (currentLevel !== 0) {
@@ -289,6 +398,7 @@ function update() {
   // Initialize cursor to listen to keyboard input
   cursors = game.input.keyboard.createCursorKeys();
   spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
 
   // let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
   let levelComplete = currentLevel === 0 ? true : isLevelComplete();
@@ -305,7 +415,7 @@ function update() {
 
 
     /*
-      Add Groups
+    Add Groups
     */
     batteries = game.add.group();
     batteries.enableBody = true;
@@ -328,21 +438,24 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
+    batteryIcons = game.add.group();
+    batteryIcons.enableBody = true;
+
     /*
     Create Objects in Groups
     */
     createBattery(7, 16, "battery1");
-    // createBattery(200, 300, "battery2");
+    // createBattery(20, 18, "battery7");
 
     createTerminal(21, 16, "battery1");
 
-    createMovable(10, 10);
-    createMovable(11, 11);
+  //createMovable(10, 10);
+  //createMovable(11, 11);
 
 
-    const holeX = 12;
-    const holeY = 10;
-    createHole(12, 10);
+  //const holeX = 12;
+  //const holeY = 10;
+  //createHole(12, 10);
 
     createBreaker(10, 10, [
       {
@@ -374,10 +487,14 @@ function update() {
           'loop': false, // The group of objects that contain the exact hazard
           'stopOtherSounds': true
         }
+      },
+      {
+        'function': () => {lightsOn = false;},
+        'args': {}
       }
     ]);
 
-    createHazard(8, 8, "hazard1", "battery1");
+    createHazard(10, 8, "hazard1", "battery1");
 
     createDoor(20, 2, 'door1');
     createDoor(20, 1, 'door2');
@@ -403,12 +520,16 @@ function update() {
     DialogueManager.aW('I know it\'s your first day on the job...');
     DialogueManager.aW('But you gonna learn today!');
 
+
+    batteryUi = game.add.sprite(30, 30, 'flashDying');
+    batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);
+    batteryUi.scale.setTo(2, 2);
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1) {
     levelLoading = true;
     game.world.removeAll();
 
-    currentLevel = 2;
+    currentLevel += 1;
 
     // World Manager Level 2 Creating Map
     let currentUpdateFunctionName = `level${currentLevel}Update`;
@@ -545,28 +666,38 @@ function update() {
     spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     actionButton = spaceBar.isDown;
+    if (!playerShocked) {
+      if (cursors.left.isDown) {//  Move to the left
+        player.body.velocity.x = -PLAYER.SPEED;
+        player.angle = PLAYER.DIR_LEFT;
+        player.animations.play('walk');
+      }
+      else if (cursors.right.isDown) {//  Move to the right
+        player.body.velocity.x = PLAYER.SPEED;
+        player.angle = PLAYER.DIR_RIGHT;
+        player.animations.play('walk');
+      }
+      else if (cursors.up.isDown) {//  Move to the left
+        player.body.velocity.y = -PLAYER.SPEED;
+        player.angle = PLAYER.DIR_UP;
+        player.animations.play('walk');
+      }
+      else if (cursors.down.isDown) {//  Move to the right
+        player.body.velocity.y = PLAYER.SPEED;
+        player.angle = PLAYER.DIR_DOWN;
+        player.animations.play('walk');
+      }
+      else {
+        player.animations.stop();
+      }
+    }
+    else if (playerShocked) {
+      player.body.immovable = true;
+      player.animations.play('shock');
+    }
 
-    if (cursors.left.isDown) {//  Move to the left
-      player.body.velocity.x = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_LEFT;
-      player.animations.play('walk');
-    }
-    else if (cursors.right.isDown) {//  Move to the right
-      player.body.velocity.x = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_RIGHT;
-      player.animations.play('walk');
-    }
-    else if (cursors.up.isDown) {//  Move to the left
-      player.body.velocity.y = -PLAYER.SPEED;
-      player.angle = PLAYER.DIR_UP;
-      player.animations.play('walk');
-    }
-    else if (cursors.down.isDown) {//  Move to the right
-      player.body.velocity.y = PLAYER.SPEED;
-      player.angle = PLAYER.DIR_DOWN;
-      player.animations.play('walk');
-    } else {
-      player.animations.stop();
-    }
+
+    drawBatteryPercent();
+    startDrainBattery();
   }
 }
