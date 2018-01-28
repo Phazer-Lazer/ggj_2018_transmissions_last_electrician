@@ -13,6 +13,11 @@ let playerInventory = {
       'carried': false,
       'delivered': false
     },
+    {
+      'name': 'battery2',
+      'carried': false,
+      'delivered': false
+    }
   ]
 };
 
@@ -20,8 +25,13 @@ let levelLoading = false;
 let dialogueText;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
-let holes, movables, doors, hazards;
+
+let holes, movables, doors, hazards, batteryUi, graphics, batteryFill;
 let lightsOn = true;
+
+let flashlightFlicker = false;
+let actionButton = false;
+
 
 const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   preload,
@@ -46,9 +56,13 @@ function preload() {
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('movable', 'assets/moveable_wall.png');
+  game.load.image('flashlight', 'assets/flashlight.png');
+  game.load.spritesheet('flashDying', 'assets/dying_flashlight.png', 64, 32);
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
+  game.load.audio('scream', 'sounds/scream.wav');
+  game.load.audio('zap', 'sounds/zap.wav');
 }
 
 const carryObject = (name, value) => {
@@ -206,6 +220,8 @@ const createHole = (x, y, activator) => {
 
 function create() {
 
+  graphics = game.add.graphics(100, 100);
+
   game.add.sprite(0, 0, 'intro');
 
   const electricMan = game.add.sprite(280, 72, 'electricMan');
@@ -234,13 +250,22 @@ const interactHazard = (player, hazard) =>  {
     let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
     if(terminalOn){
       console.log('Shock.');
+      EventManager.playSound({
+        'game': game,
+        'sound': 'zap'
+      });
     }
   }
 };
 
 const isVisible = (obj, playerPosition) => {
   // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
-  if(obj.alive){
+  if(obj.alive && PLAYER.curBatteryLife > 0){
+    if(PLAYER.curBatteryLife < PLAYER.BATTERY_FLICKER){
+      if(flashlightFlicker){
+        return;
+      }
+    }
     let playerDir = player.angle;
 
       let isHorizontal = (playerDir + 180)%180 === 0;
@@ -265,6 +290,9 @@ const isVisible = (obj, playerPosition) => {
 };
 
 const hideObjects = (player) => {
+
+  flashlightFlicker = !flashlightFlicker;
+
   let playerPos = player.position;
 
   paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
@@ -275,8 +303,58 @@ const hideObjects = (player) => {
   doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+
+  holes.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+
+  movables.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
+const drawBatteryPercent = () => {
+
+  // Check if the text exists.  If it doesn't, create it.
+  if(typeof batteryFill === "undefined"){
+    batteryFill = game.add.text(65, 48, `%${PLAYER.curBatteryLife}`);
+    batteryFill.addColor("white", 0); //red
+  }
+  // Update battery life text
+  batteryFill.setText(`%${PLAYER.curBatteryLife}`);
+
+
+};
+
+const killPlayer = () => {
+  EventManager.playSound({
+    'sound': 'scream',
+    'game': game
+  });
+  player.visible = false;
+  setTimeout(() => {
+    location.reload();
+  }, 5000);
+};
+
+const startDrainBattery = () => {
+  if(!PLAYER.batteryDraining){
+    PLAYER.batteryDraining = true;
+    continueDrainBattery();
+  }
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_DYING){
+    batteryUi.animations.play('flashDying');
+  }
+  if(PLAYER.curBatteryLife < PLAYER.BATTERY_FALL){
+    PLAYER.SIGHT_DIST = (PLAYER.curBatteryLife+1) * 32;
+  }
+  if(PLAYER.curBatteryLife === 0){
+    killPlayer();
+  }
+};
+
+const continueDrainBattery = () => {
+  setTimeout(() => {
+    if(!lightsOn && PLAYER.curBatteryLife > 0) PLAYER.curBatteryLife -= 1;
+    continueDrainBattery();
+  }, 1000);
+};
 
 function render() {
   if (currentLevel !== 0) {
@@ -288,6 +366,7 @@ function update() {
   // Initialize cursor to listen to keyboard input
   cursors = game.input.keyboard.createCursorKeys();
   spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
 
   // let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
   let levelComplete = currentLevel === 0 ? true : isLevelComplete();
@@ -304,7 +383,7 @@ function update() {
 
 
     /*
-      Add Groups
+    Add Groups
     */
     batteries = game.add.group();
     batteries.enableBody = true;
@@ -327,6 +406,8 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
+
+
     /*
     Create Objects in Groups
     */
@@ -335,13 +416,13 @@ function update() {
 
     createTerminal(21, 16, "battery1");
 
-  createMovable(10, 10);
-  createMovable(11, 11);
+    createMovable(10, 10);
+    createMovable(11, 11);
 
 
-  const holeX = 12;
-  const holeY = 10;
-  createHole(12, 10);
+    const holeX = 12;
+    const holeY = 10;
+    createHole(12, 10);
 
     createBreaker(10, 10, [
       {
@@ -373,6 +454,10 @@ function update() {
           'loop': false, // The group of objects that contain the exact hazard
           'stopOtherSounds': true
         }
+      },
+      {
+        'function': () => {lightsOn = false;},
+        'args': {}
       }
     ]);
 
@@ -402,25 +487,29 @@ function update() {
     DialogueManager.aW('I know it\'s your first day on the job...');
     DialogueManager.aW('But you gonna learn today!');
 
+
+    batteryUi = game.add.sprite(30, 30, 'flashDying');
+    batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);
+    batteryUi.scale.setTo(2, 2);
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
     levelLoading = true;
-      game.world.removeAll();
+    game.world.removeAll();
 
-      currentLevel = 2;
+    currentLevel += 1;
 
-      // World Manager Level 2 Creating Map
-      let currentUpdateFunctionName = `level${currentLevel}Update`;
-      WorldManager[currentUpdateFunctionName]();
+    // World Manager Level 2 Creating Map
+    let currentUpdateFunctionName = `level${currentLevel}Update`;
+    WorldManager[currentUpdateFunctionName]();
 
-      batteries = game.add.group();
-      batteries.enableBody = true;
+    batteries = game.add.group();
+    batteries.enableBody = true;
 
-      terminals = game.add.group();
-      terminals.enableBody = true;
+    terminals = game.add.group();
+    terminals.enableBody = true;
 
-      breakers = game.add.group();
-      breakers.enableBody = true;
+    breakers = game.add.group();
+    breakers.enableBody = true;
 
       playerInventory = {
         batteries: [
@@ -547,5 +636,9 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     } else {
       player.animations.stop();
     }
+
+
+    drawBatteryPercent();
+    startDrainBattery();
   }
 }
