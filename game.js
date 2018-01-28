@@ -39,7 +39,7 @@ let level = 1;
 let currentLevel = level;
 
 let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
-let lightsOn = true;
+let lightsOn = false;
 
 let actionButton = false;
 
@@ -261,24 +261,28 @@ const getDistance = (obj1,obj2) => {
   return Math.abs(Math.sqrt(a*a + b*b));
 };
 
-const isVisible = (position, playerPosition) => {
-  let playerDir = player.angle;
-
-  let isHorizontal = (playerDir + 180)%180 === 0;
-  let isVertical = !isHorizontal;
-  let isInFrontOfPlayer = isHorizontal ?
-    Math.sign(position.x - playerPosition.x) === Math.sign(playerDir + 1) :
-    Math.sign(position.y - playerPosition.y) === Math.sign(playerDir);
-
-  if (isInFrontOfPlayer) {
-    let dx = Math.abs(position.x - playerPosition.x);
-    let dy = Math.abs(position.y - playerPosition.y);
-    let theta = Math.atan2(dy, dx);
-    let degrees = theta * 180/Math.PI;
-
-    let inFlashLightView = isHorizontal ?
-      degrees < 50 : degrees > 40;
-    return inFlashLightView;
+const isVisible = (obj, playerPosition) => {
+  // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
+  if(obj.alive){
+    let playerDir = player.angle;
+    
+      let isHorizontal = (playerDir + 180)%180 === 0;
+      let isVertical = !isHorizontal;
+      let isInFrontOfPlayer = isHorizontal ?
+        Math.sign(obj.position.x - playerPosition.x) === Math.sign(playerDir + 1) :
+        Math.sign(obj.position.y - playerPosition.y) === Math.sign(playerDir);
+    
+      if (isInFrontOfPlayer) {
+        let dx = Math.abs(obj.position.x - playerPosition.x);
+        let dy = Math.abs(obj.position.y - playerPosition.y);
+        let theta = Math.atan2(dy, dx);
+        let degrees = theta * 180/Math.PI;
+    
+        let inFlashLightView = isHorizontal ?
+          degrees < 50 : degrees > 40;
+        return inFlashLightView;
+      }
+      return false;
   }
   return false;
 };
@@ -286,11 +290,14 @@ const isVisible = (position, playerPosition) => {
 const hideObjects = (player) => {
   let playerPos = player.position;
 
-  paths.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  batteries.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
-  terminals.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  walls.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  breakers.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  batteries.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
+  terminals.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  walls.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 function update() {
