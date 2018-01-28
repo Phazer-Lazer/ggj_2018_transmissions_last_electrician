@@ -66,16 +66,16 @@ const WorldManager = (function () {
 
       walls = game.add.group();
       walls.enableBody = true;
-      
+
       paths = game.add.group();
       paths.enableBody = true;
-      
+
       this.buildBorder();
       this.hWall(10, TILE_WIDTH*5, TILE_HEIGHT*12);
-      
-      this.vWall(9, TILE_WIDTH*20, TILE_HEIGHT*3);
+
+      this.vWall(8, TILE_WIDTH*20, TILE_HEIGHT*3);
       this.hWall(12, TILE_WIDTH*20, 32*3);
-      
+
       this.vWall(8, TILE_WIDTH*20, TILE_HEIGHT*15);
       this.hWall(8, TILE_WIDTH*21, TILE_HEIGHT*15);
 
@@ -109,7 +109,7 @@ const WorldManager = (function () {
       for(let i =0; i < 11; i++){
         this.hPath(11, TILE_WIDTH*21, ((i + 4)* TILE_HEIGHT));
       }
-      
+
       //builds path under horizontal wall toward the bottom
       this.hPath(3, TILE_WIDTH*29, TILE_HEIGHT*15);
 
