@@ -12,6 +12,11 @@ let playerInventory = {
       'carried': false,
       'delivered': false
     },
+    {
+      'name': 'battery3331',
+      'carried': false,
+      'delivered': false
+    },
   ]
 };
 
@@ -23,6 +28,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, doors, breakers;
+let hazards;
 let lightsOn = true;
 
 let actionButton = false;
@@ -102,7 +108,13 @@ const interactTerminal = (player, terminal) => {
 };
 
 const interactBreaker = (player, breaker) => {
-  //check if the player has used action button on the breaker, if so turn on hazard
+  if(actionButton){
+    //check if the player has used action button on the breaker, if so turn on hazard
+    let  callbacks = breaker.callbackArray;
+    for(let i = 0; i < callbacks.length; i++){
+      callbacks[i]['function'](callbacks[i].objects, callbacks[i].options);
+    }
+  }
 }
 
 const createBattery = (x, y, name) => {
@@ -128,6 +140,14 @@ const isLevelComplete = () => {
   return batteriesDelivered === batteryArray.length;
 };
 
+const createHazard = (x, y, name) => {
+  const hazard = hazards.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'caution');
+  hazard.body.immovable = true;
+  hazard.name = name;
+  hazard.deactivate = false;
+  // hazard.callbackArray = callbackArray;
+};
+
 const createTerminal = (x, y, activator) => {
   // Set terminal image based on wether or not it is delivered.
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -139,26 +159,26 @@ const createTerminal = (x, y, activator) => {
   terminal.activator = activator;
 };
 
-const createBreaker = (x, y, activator) => {
+const createBreaker = (x, y, callbackArray) => {
 
   const breaker = breakers.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'breaker');
   breaker.body.immovable = true;
-  breaker.activator = activator;
+  breaker.callbackArray = callbackArray;
 };
 
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
   game.load.image('path', 'assets/path.png');
   game.load.image('wall', 'assets/wall.png');
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
-  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
   game.load.image('intro', 'assets/intro_screen.png');
+  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
-
 }
 
 function create() {
@@ -171,30 +191,13 @@ function create() {
 
   const happyMusic = game.sound.play('happy_bgm');
   happyMusic.loopFull(1);
-
-  doors = game.add.group();
-  doors.enableBody = true;
-
-
-  /*
-  Create Objects in Groups
-  */
-  createBattery(7, 16, "battery1");
-  // createBattery(200, 300, "battery2");
-
-  createTerminal(21, 16, "battery1");
-
-
-  /*
-  Create Player
-  */
-  player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
-  player.scale.setTo(2, 2);
-  game.physics.arcade.enable(player);
-  player.animations.add("walk", [0, 1, 2, 3], 10, true);
-
 }
 
+const interactHazard = (player, hazard) =>  {
+  if(!hazard.deactivate){
+    console.log('Shock.');
+  }
+}
 const getDistance = (obj1,obj2) => {
   let a = obj1.x - obj2.x;
   let b = obj1.y - obj2.y;
@@ -259,6 +262,21 @@ function update() {
     breakers = game.add.group();
     breakers.enableBody = true;
 
+    hazards = game.add.group();
+    hazards.enableBody = true;
+
+    doors = game.add.group();
+    doors.enableBody = true;
+
+    createBreaker(10, 10, [
+      {
+        'function': EventManager.deactivateHazard,
+        'options': "hazard",
+        'objects': hazards
+      }
+    ]);
+
+    createHazard(8, 8, "hazard")
 
     /*
     Create Objects in Groups
@@ -299,9 +317,14 @@ function update() {
             'name': 'battery2',
             'carried': false,
             'delivered': false
+          },
+          {
+            'name': 'BATTERYTEST',
+            'carried': false,
+            'delivered': false
           }
         ]
-      }
+      };
       /*
       Create Objects in Groups
       */
@@ -339,6 +362,7 @@ function update() {
     game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
     game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
     game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+  game.physics.arcade.collide(player, hazards, interactHazard, null, this);
 
 
     // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
