@@ -171,7 +171,6 @@ const interactTerminal = (player, terminal) => {
 };
 
 const interactBreaker = (player, breaker) => {
-  console.log('breaker');
   if(actionButton){
     //check if the player has used action button on the breaker, if so turn on hazard
     breaker.loadTexture('breakerOn');
@@ -388,6 +387,10 @@ const killPlayer = () => {
     'sound': 'scream',
     'game': game
   });
+
+  if (PLAYER.curBatteryLife <= 4) {
+    game.world.removeAll()
+  }
 
   setTimeout(() => {
     player.visible = false;
@@ -637,7 +640,6 @@ function update() {
     player.body.setSize(12, 12, 10, 14);
     levelLoading = false;
   } else if(isLevelComplete() && currentLevel === 2){
-    console.log(2)
     levelLoading = true;
   game.world.removeAll();
 
@@ -647,8 +649,6 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
   levelLoading = false;
   } else if (isLevelComplete() && currentLevel === 3) {
     exitHit = false;
-
-    console.log('YOU WONNERED.', currentLevel);
   }
 
   if (currentLevel !== 0 && !levelLoading) {
@@ -661,9 +661,8 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
     }
 
 
-    if(isLevelComplete()){
-      // console.log('Victory!');
-    }
+    // if(isLevelComplete()){
+    // }
 
     /*
     Add Physics
