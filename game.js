@@ -21,8 +21,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
-let level = 1;
-let currentLevel = level;
+let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let lightsOn = true;
 
@@ -155,43 +154,24 @@ function preload() {
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
+  game.load.image('intro', 'assets/intro_screen.png');
+
+  game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
+
 }
 
 function create() {
 
-  // World Manager Creating Map
-  const currentUpdateFunctionName = `level${currentLevel}Update`;
-  WorldManager[currentUpdateFunctionName]();
+  game.add.sprite(0, 0, 'intro');
 
+  const electricMan = game.add.sprite(280, 72, 'electricMan');
+  electricMan.animations.add('blow', [0, 1], 10, true);
+  electricMan.animations.play('blow');
 
-  /*
-    Add Groups
-  */
-  batteries = game.add.group();
-  batteries.enableBody = true;
-  
-  terminals = game.add.group();
-  terminals.enableBody = true;
-  
-  breakers = game.add.group();
-  breakers.enableBody = true;
-  
-  
-  /*
-  Create Objects in Groups
-  */
-  createBattery(7, 16, "battery1");
-  
-  createTerminal(21, 16, "battery1");
+  const happyMusic = game.sound.play('happy_bgm');
+  happyMusic.loopFull(1);
 
-
-  /*
-  Create Player
-  */
-  player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
-  player.scale.setTo(2, 2);
-  game.physics.arcade.enable(player);
-  player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
 }
 
@@ -234,16 +214,49 @@ const hideObjects = (player) => {
 };
 
 function update() {
+  // Initialize cursor to listen to keyboard input
+  cursors = game.input.keyboard.createCursorKeys();
+  spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-  if (!lightsOn) {
-    hideObjects(player);
-  }
+  let levelComplete = currentLevel === 0 ? spaceBar.isDown : isLevelComplete();
+
+  if (levelComplete && currentLevel === 0) {
+    currentLevel = 1;
+    // World Manager Creating Map
+    const currentUpdateFunctionName = `level${currentLevel}Update`;
+    WorldManager[currentUpdateFunctionName]();
 
 
-  if(isLevelComplete() && currentLevel === 1){
-    
+    /*
+      Add Groups
+    */
+    batteries = game.add.group();
+    batteries.enableBody = true;
+
+    terminals = game.add.group();
+    terminals.enableBody = true;
+
+    breakers = game.add.group();
+    breakers.enableBody = true;
+
+
+    /*
+    Create Objects in Groups
+    */
+    createBattery(7, 16, "battery1");
+
+    createTerminal(21, 16, "battery1");
+
+
+    /*
+    Create Player
+    */
+    player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
+    player.scale.setTo(2, 2);
+    game.physics.arcade.enable(player);
+    player.animations.add("walk", [0, 1, 2, 3], 10, true);
+  } else if (levelComplete && currentLevel === 1){
       game.world.removeAll();
-      console.log(currentLevel)
 
       currentLevel += 1
 
@@ -253,13 +266,13 @@ function update() {
 
       batteries = game.add.group();
       batteries.enableBody = true;
-      
+
       terminals = game.add.group();
       terminals.enableBody = true;
-      
+
       breakers = game.add.group();
       breakers.enableBody = true;
-      
+
       playerInventory = {
         batteries: [
           {
@@ -273,10 +286,10 @@ function update() {
       Create Objects in Groups
       */
       createBattery(7, 16, "battery2");
-      
+
       createTerminal(21, 16, "battery2");
-    
-    
+
+
       /*
       Create Player
       */
@@ -286,68 +299,66 @@ function update() {
       player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
 
-  
-  } else if(isLevelComplete() && currentLevel === 2){
 
+  } else if (levelComplete && currentLevel === 2){
       game.world.removeAll();
-      console.log(currentLevel)
 
       currentLevel += 1
   }
 
-  /*
-  Add Physics
-  */
-  game.physics.arcade.collide(player, walls);
-  game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
-  game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
-  game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+  if (currentLevel !== 0) {
+
+    if (!lightsOn) {
+      hideObjects(player);
+    }
+
+    /*
+    Add Physics
+    */
+    game.physics.arcade.collide(player, walls);
+    game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
+    game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
+    game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
 
 
+    // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
+    disableScrollbar();
 
+    // Reset player velocity in each direction so you can't move on angles
+    player.body.velocity.x = 0;
+    player.body.velocity.y = 0;
 
-  // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
-  disableScrollbar();
+    // Set player anchor to center rotation
+    player.anchor.setTo(0.5, 0.5);
 
-  // Reset player velocity in each direction so you can't move on angles
-  player.body.velocity.x = 0;
-  player.body.velocity.y = 0;
+    if (spaceBar.isDown) {
+      actionButton = true;
+    } else {
+      actionButton = false;
+    }
 
-  // Set player anchor to center rotation
-  player.anchor.setTo(0.5, 0.5);
-
-  // Initialize cursor to listen to keyboard input
-  cursors = game.input.keyboard.createCursorKeys();
-  spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);;
-
-  if(spaceBar.isDown){
-    actionButton = true;
-  } else {
-    actionButton = false;
+    if (cursors.left.isDown) {//  Move to the left
+      player.body.velocity.x = -PLAYER.SPEED;
+      player.angle = PLAYER.DIR_LEFT;
+      player.animations.play('walk');
+    }
+    else if (cursors.right.isDown) {//  Move to the right
+      player.body.velocity.x = PLAYER.SPEED;
+      player.angle = PLAYER.DIR_RIGHT;
+      player.animations.play('walk');
+    }
+    else if (cursors.up.isDown) {//  Move to the left
+      player.body.velocity.y = -PLAYER.SPEED;
+      player.angle = PLAYER.DIR_UP;
+      player.animations.play('walk');
+    }
+    else if (cursors.down.isDown) {//  Move to the right
+      player.body.velocity.y = PLAYER.SPEED;
+      player.angle = PLAYER.DIR_DOWN;
+      player.animations.play('walk');
+    } else {
+      player.animations.stop();
+    }
   }
-
-  if (cursors.left.isDown){//  Move to the left
-    player.body.velocity.x = -PLAYER.SPEED;
-    player.angle = PLAYER.DIR_LEFT;
-    player.animations.play('walk');
-  }
-  else if (cursors.right.isDown){//  Move to the right
-    player.body.velocity.x = PLAYER.SPEED;
-    player.angle = PLAYER.DIR_RIGHT;
-    player.animations.play('walk');
-  }
-  else if (cursors.up.isDown){//  Move to the left
-    player.body.velocity.y = -PLAYER.SPEED;
-    player.angle = PLAYER.DIR_UP;
-    player.animations.play('walk');
-  }
-  else if (cursors.down.isDown){//  Move to the right
-    player.body.velocity.y = PLAYER.SPEED;
-    player.angle = PLAYER.DIR_DOWN;
-    player.animations.play('walk');
-  } else {
-    player.animations.stop();
-  }
-
 
 }
