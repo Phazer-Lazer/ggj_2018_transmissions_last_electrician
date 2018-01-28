@@ -67,7 +67,15 @@ function preload() {
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
   game.load.audio('scream', 'sounds/scream.wav');
   game.load.audio('zap', 'sounds/zap.wav');
+  game.load.audio('pickup', 'sounds/Pickup.wav');
+  game.load.audio('power_on', 'sounds/power_on.wav');
+  game.load.audio('power_off', 'sounds/power_off.wav');
+  game.load.audio('vox_putBatInTerm', 'sounds/vox_putbatinterm.wav');
+  game.load.audio('vox_watchout', 'sounds/vox_watchout.wav');
+  game.load.audio('vox_dopay', 'sounds/vox_dopay.wav');
+  game.load.audio('livewire', 'sounds/LiveWire.wav');
 }
+
 
 
 
@@ -110,6 +118,10 @@ const pickupBattery = (player, battery) => {
   if(isCarryingNothing()){
     battery.kill();
     carryObject(battery.name, true);
+    EventManager.playSound({
+      'game': game,
+      'sound': 'vox_putBatInTerm'
+    });
   }
   createBatteryIcon();
 };
@@ -131,6 +143,18 @@ const interactTerminal = (player, terminal) => {
       terminal.animations.play('on');
 
       batteryIcon.kill();
+
+      EventManager.playSound({
+        'game': game,
+        'sound': 'power_on'
+      });
+
+      setTimeout(() => {
+        EventManager.playSound({
+        'game': game,
+        'sound': 'livewire'
+      });
+      }, 3000);
 
       let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
       newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
