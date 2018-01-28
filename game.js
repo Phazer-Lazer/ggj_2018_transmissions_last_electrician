@@ -670,11 +670,6 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
         player.animations.stop();
       }
     }
-    else if (playerShocked) {
-      player.body.immovable = true;
-      player.animations.play('shock');
-    }
-
 
     drawBatteryPercent();
     startDrainBattery();
