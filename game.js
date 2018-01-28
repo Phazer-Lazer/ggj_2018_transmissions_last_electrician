@@ -19,7 +19,7 @@ let levelLoading = false;
 let currentLevel = 0;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let holes, movables, doors, hazards;
-let lightsOn = false;
+let lightsOn = true;
 
 let actionButton = false;
 
@@ -278,28 +278,9 @@ const hideObjects = (player) => {
 
 
 function render() {
-  // if (currentLevel !== 0) {
-  //   player.body.width = 20;
-  //   player.body.height = 20;
-  //   player.body.x = player.x - 10;
-  //   player.body.y = player.y;
-  //
-  //   // console.log(player.body.facing);
-  //
-  //   switch (player.angle) {
-  //     case PLAYER.DIR_UP:
-  //
-  //       break;
-  //     case PLAYER.DIR_RIGHT:
-  //       break;
-  //     case PLAYER.DIR_DOWN:
-  //       break;
-  //     case PLAYER.DIR_LEFT:
-  //       break;
-  //   }
-  //
-  //   game.debug.body(player);
-  // }
+  if (currentLevel !== 0) {
+
+  }
 }
 
 function update() {
@@ -405,6 +386,7 @@ function update() {
     player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
     player.scale.setTo(2, 2);
     game.physics.arcade.enable(player);
+    player.body.setSize(12, 12, 10, 14);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
@@ -461,11 +443,14 @@ function update() {
       createTerminal(6, 16, "battery2");
 
 
-  /*
+    /*
       Create Player
-      */ player= game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero'); player.scale.setTo(2, 2);
-  game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
-  levelLoading = false;
+    */
+    player= game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
+    player.scale.setTo(2, 2);
+    game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
+    player.body.setSize(12, 12, 10, 14);
+    levelLoading = false;
   } else if(isLevelComplete() && currentLevel === 2){
     levelLoading = true;
   game.world.removeAll();
@@ -474,6 +459,8 @@ function update() {
 movables.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   levelLoading = false;
+  } else if (isLevelComplete() && currentLevel === 3) {
+    alert('YOU WONNERED.');
   }
 
   if (currentLevel !== 0 && !levelLoading) {
