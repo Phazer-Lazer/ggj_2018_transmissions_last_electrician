@@ -340,6 +340,7 @@ const hideObjects = (player) => {
 const drawBatteryPercent = () => {
 
   // Check if the text exists.  If it doesn't, create it.
+  // console.log('batteryFill', batteryFill);
   if(typeof batteryFill === "undefined"){
     batteryFill = game.add.text(65, 48, `%${PLAYER.curBatteryLife}`);
     batteryFill.addColor("white", 0); //red
@@ -556,6 +557,8 @@ function update() {
     doors = game.add.group();
     doors.enableBody = true;
 
+    batteryFill = undefined;
+
     batteryIcons = game.add.group();
     batteryIcons.enableBody = true;
 
@@ -641,6 +644,10 @@ function update() {
     player.body.setSize(12, 12, 10, 14);
 
 
+    
+    drawBatteryPercent();
+    startDrainBattery();
+    
     batteryUi = game.add.sprite(30, 30, 'flashDying');
     batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);
     batteryUi.scale.setTo(2, 2);
