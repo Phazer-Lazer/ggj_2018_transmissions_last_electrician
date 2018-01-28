@@ -121,7 +121,7 @@ const interactBreaker = (player, breaker) => {
     //check if the player has used action button on the breaker, if so turn on hazard
     let  callbacks = breaker.callbackArray;
     for(let i = 0; i < callbacks.length; i++){
-      callbacks[i]['function'](callbacks[i].objects, callbacks[i].options);
+      callbacks[i]['function'](callbacks[i].targetGroup, callbacks[i].target);
     }
   }
 }
@@ -149,11 +149,13 @@ const isLevelComplete = () => {
   return batteriesDelivered === batteryArray.length;
 };
 
-const createHazard = (x, y, name) => {
+const createHazard = (x, y, name, terminal) => {
   const hazard = hazards.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'caution');
   hazard.body.immovable = true;
   hazard.name = name;
+
   hazard.deactivate = false;
+  hazard.terminal = terminal; // Set terminal name that it is associated with for power
   // hazard.callbackArray = callbackArray;
 };
 
@@ -210,12 +212,13 @@ function create() {
   createBreaker(10, 10, [
     {
     'function': EventManager.deactivateHazard, 
-    'options': "hazard",
-    'objects': hazards
+    'target': "hazard",
+    'targetGroup': hazards // The group of objects that contain the exact hazard
     }
   ]);
 
-  createHazard(8, 8, "hazard")
+  createHazard(8, 8, "hazard", "battery1");
+
   /*
   Create Player
   */
@@ -228,7 +231,11 @@ function create() {
 
 const interactHazard = (player, hazard) =>  {
   if(!hazard.deactivate){
-    console.log('Shock.');
+    // Check if battery is delivered to terminal and therfore on
+    let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
+    if(terminalOn){
+      console.log('Shock.');
+    }
   }
 }
 const getDistance = (obj1,obj2) => {
