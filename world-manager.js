@@ -151,6 +151,7 @@ const WorldManager = (function () {
 
       this.buildBorder();
 
+      //builds game walls
       this.vWall(11, 8, 1);
       this.vWall(3, 8, 16);
 
@@ -180,6 +181,50 @@ const WorldManager = (function () {
 
       this.hWall(5, 28, 10);
       this.hWall(5, 34, 15);
+
+      //builds game path
+      //top left
+      for(let i =1; i < 9; i++){
+        this.hPath(7, 1, i);
+      }
+      //bottom left
+      for(let i =0; i < 11; i++){
+        this.hPath(7, 1, i + 10);
+      }
+      //termial B box
+      for(let i =0; i < 3; i++){
+        this.hPath(5, 9, i + 8);
+      }
+      //bottom left- 2nd in
+      for(let i =0; i < 9; i++){
+        this.hPath(5, 9, i + 12);
+      }
+      //top left- 2nd in
+      for(let i =1; i < 7; i++){
+        this.hPath(12, 9, i);
+      }
+      this.hPath(6, 15, 7)      
+      for(let i =0; i < 8; i++){
+        this.hPath(6, 15, i+9);
+      }
+      //bottom narrow path
+      for(let i =0; i < 3; i++){
+        this.hPath(13, 14, i+18);
+      }
+      //2nd b terminal box
+      for(let i =0; i < 3; i++){
+        this.hPath(5, 22, i+10);
+      }
+      //bottom right
+      for(let i =0; i < 5; i++){
+        this.hPath(11, 28, i+16);
+      }                   
+      for(let i =0; i < 5; i++){
+        this.hPath(6, 28, i+11);
+      }                   
+      for(let i =0; i < 3; i++){
+        this.hPath(7, 21, i+14);
+      }                   
 
 
 
