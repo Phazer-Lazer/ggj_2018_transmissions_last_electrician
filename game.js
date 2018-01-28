@@ -12,11 +12,11 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    },
-    {
-      'name': 'battery2',
-      'carried': false,
-      'delivered': false
+    // },
+    // {
+    //   'name': 'battery2',
+    //   'carried': false,
+    //   'delivered': false
     }
   ]
 };
@@ -529,6 +529,7 @@ function update() {
     game.world.removeAll();
 
     currentLevel += 1;
+    lightsOn = true;
 
     // World Manager Level 2 Creating Map
     let currentUpdateFunctionName = `level${currentLevel}Update`;
@@ -543,6 +544,21 @@ function update() {
     breakers = game.add.group();
     breakers.enableBody = true;
 
+    movables = game.add.group();
+    movables.enableBody = true;
+
+    holes = game.add.group();
+    holes.enableBody = true;
+
+    hazards = game.add.group();
+    hazards.enableBody = true;
+
+    doors = game.add.group();
+    doors.enableBody = true;
+
+    batteryIcons = game.add.group();
+    batteryIcons.enableBody = true;
+
       playerInventory = {
         batteries: [
           {
@@ -554,16 +570,13 @@ function update() {
             'name': 'battery3',
             'carried': false,
             'delivered': false
+
           },
           {
-            'name': 'battery4',
+            'name': 'batteryKill',
             'carried': false,
             'delivered': false
-          },
-          {
-            'name': 'battery5',
-            'carried': false,
-            'delivered': false
+
           }
         ]
       };
@@ -571,11 +584,52 @@ function update() {
       Create Objects in Groups Level 2
       */
       createBattery(2, 15, "battery2");
-      // createBattery(18, 16, "battery3");
-      // createBattery(20, 16, "battery4");
-      // createBattery(30, 16, "battery5");
+      createBattery(23, 4, "battery3");
+
+      createDoor(14, 18, 'door2');
+      createDoor(14, 19, 'door3');
+      createDoor(14, 20, 'door4');
+
+      createBreaker(13, 14, [
+        {
+          'function': EventManager.openDoor,
+          'args': {
+            'target': "door2",
+            'targetGroup': doors // The group of objects that contain the exact hazard
+          }
+        },
+        {
+          'function': EventManager.openDoor,
+          'args': {
+            'target': "door3",
+            'targetGroup': doors // The group of objects that contain the exact hazard
+          }
+        },
+        {
+          'function': EventManager.openDoor,
+          'args': {
+            'target': "door4",
+            'targetGroup': doors // The group of objects that contain the exact hazard
+          }
+        },
+        {
+          'function': EventManager.playSound,
+          'args': {
+            'game': game,
+            'sound': "darkness",
+            'loop': false, // The group of objects that contain the exact hazard
+            'stopOtherSounds': true
+          }
+        },
+        {
+          'function': () => {lightsOn = false;},
+          'args': {}
+        }
+
+      ])
 
       createTerminal(6, 16, "battery2");
+      createTerminal(37, 12, "battery3");
 
 
     /*
@@ -585,6 +639,12 @@ function update() {
     player.scale.setTo(2, 2);
     game.physics.arcade.enable( player); player.animations.add("walk", [0, 1, 2, 3], 10, true);
     player.body.setSize(12, 12, 10, 14);
+
+
+    batteryUi = game.add.sprite(30, 30, 'flashDying');
+    batteryUi.animations.add('flashDying', [0, 1, 2, 3], 10, true);
+    batteryUi.scale.setTo(2, 2);
+
     levelLoading = false;
   } else if(isLevelComplete() && currentLevel === 2){
     levelLoading = true;
@@ -595,7 +655,7 @@ movables.children.forEach(element => element.visible = isVisible(element.positio
   holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   levelLoading = false;
   } else if (isLevelComplete() && currentLevel === 3) {
-    alert('YOU WONNERED.');
+    // alert('YOU WONNERED.');
   }
 
   if (currentLevel !== 0 && !levelLoading) {
