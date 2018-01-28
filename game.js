@@ -48,7 +48,7 @@ function preload() {
   game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
   game.load.image('intro', 'assets/intro_screen.png');
   game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
-  game.load.image('movable', 'assets/wall.png');
+  game.load.image('movable', 'assets/moveable_wall.png');
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
