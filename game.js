@@ -15,6 +15,8 @@ let playerInventory = {
   ]
 };
 
+let actionButton = false;
+
 const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   preload,
   create,
@@ -25,6 +27,7 @@ let level = 1;
 let currentLevel = level;
 let player, cursors, batteries, terminals;
 let lightsOn = true;
+
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -61,40 +64,43 @@ const isCarryingNothing = () => {
 };
 
 const pickupBattery = (player, battery) => {
-  // If the player is carrying nothing, allow them to pickup a battery.
-  if(isCarryingNothing()){
-    battery.kill();
-    carryObject(battery.name, true);
-  }
+  if(actionButton === true){
+    // If the player is carrying nothing, allow them to pickup a battery.
+    if(isCarryingNothing() ){
+      battery.kill();
+      carryObject(battery.name, true);
+    }
+}
 };
 
 const interactTerminal = (player, terminal) => {
-  // Check if object has been delivered and player is carrying nothing, if so, exit.
-  if (isDelivered(terminal.activator) || isCarryingNothing()) {
-    return;
+  if(actionButton === true){
+    // Check if object has been delivered and player is carrying nothing, if so, exit.
+    if (isDelivered(terminal.activator) || isCarryingNothing()) {
+      return;
+    }
+
+    // If player is carrying the activator, deliver it and exit.
+    if (isCarried(terminal.activator)) {
+      carryObject(terminal.activator, false);
+      deliverObject(terminal.activator);
+      // Set terminal image to activated
+      terminal.loadTexture('terminalOn');
+      terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
+      terminal.animations.play('on');
+
+      let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
+      newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
+      newBattery.animations.play('glow');
+      return;
+    }
+
+
+    // If player is carrying something, but it is not the activator for the terminal, shock them.
+    if (!isCarried(terminal.activator)) {
+      console.log('shock');
+    }
   }
-
-  // If player is carrying the activator, deliver it and exit.
-  if (isCarried(terminal.activator)) {
-    carryObject(terminal.activator, false);
-    deliverObject(terminal.activator);
-    // Set terminal image to activated
-    terminal.loadTexture('terminalOn');
-    terminal.animations.add('on', [0, 1, 2, 3, 4, 5], 6, true);
-    terminal.animations.play('on');
-
-    let newBattery = game.add.sprite(terminal.x + 6, terminal.y + 46, 'battery');
-    newBattery.animations.add('glow', [0, 1, 2, 3, 4, 5], 10, true);
-    newBattery.animations.play('glow');
-    return;
-  }
-
-
-  // If player is carrying something, but it is not the activator for the terminal, shock them.
-  if (!isCarried(terminal.activator)) {
-    console.log('shock');
-  }
-
 };
 
 const createBattery = (x, y, name) => {
@@ -131,6 +137,7 @@ const createTerminal = (x, y, activator) => {
   terminal.activator = activator;
 };
 
+
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
@@ -146,33 +153,6 @@ function create() {
   const currentUpdateFunctionName = `level${currentLevel}Update`;
   WorldManager[currentUpdateFunctionName]();
 
-
-  /*
-    Add Groups
-  */
-  batteries = game.add.group();
-  batteries.enableBody = true;
-
-  terminals = game.add.group();
-  terminals.enableBody = true;
-
-
-  /*
-  Create Objects in Groups
-  */
-  createBattery(7, 16, "battery1");
-  // createBattery(200, 300, "battery2");
-
-  createTerminal(21, 16, "battery1");
-
-
-  /*
-  Create Player
-  */
-  player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
-  player.scale.setTo(2, 2);
-  game.physics.arcade.enable(player);
-  player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
 }
 
@@ -222,7 +202,23 @@ function update() {
 
 
   if(isLevelComplete()){
-    console.log('Victory!');
+    
+    if(currentLevel === 1){
+      game.world.removeAll();
+
+      currentLevel += 1
+      console.log(currentLevel)
+
+      // World Manager Level 2 Creating Map
+      let currentUpdateFunctionName = `level${currentLevel}Update`;
+      console.log(currentUpdateFunctionName)
+      WorldManager[currentUpdateFunctionName]();
+
+
+    }
+    // }else if(currentLevel === 3){
+
+    // }
   }
 
   /*
@@ -269,5 +265,6 @@ function update() {
   } else {
     player.animations.stop();
   }
+
 
 }
