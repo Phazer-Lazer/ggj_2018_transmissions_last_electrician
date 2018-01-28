@@ -11,7 +11,12 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    }
+    },
+    {
+      'name': 'battery3331',
+      'carried': false,
+      'delivered': false
+    },
   ]
 };
 
@@ -21,8 +26,26 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
+
+function preload() {
+  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
+  game.load.spritesheet('caution', 'assets/caution.png', 32, 32);
+  game.load.spritesheet('door', 'assets/moveable_wall.png', 32, 32);
+  game.load.image('path', 'assets/path.png');
+  game.load.image('wall', 'assets/wall.png');
+  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
+  game.load.image('terminalOff', 'assets/terminal_off.png');
+  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
+  game.load.image('intro', 'assets/intro_screen.png');
+  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
+
+  game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
+  game.load.audio('darkness', 'sounds/darkness_bgm.wav');
+}
+
 let currentLevel = 0;
-let player, cursors, spaceBar, batteries, terminals, breakers;
+let player, cursors, spaceBar, batteries, terminals, breakers, doors, hazards;
 let lightsOn = true;
 
 let actionButton = false;
@@ -102,8 +125,14 @@ const interactTerminal = (player, terminal) => {
 };
 
 const interactBreaker = (player, breaker) => {
-  //check if the player has used action button on the breaker, if so turn on hazard
-}
+  if(actionButton){
+    //check if the player has used action button on the breaker, if so turn on hazard
+    let  callbacks = breaker.callbackArray;
+    for(let i = 0; i < callbacks.length; i++){
+      callbacks[i]['function'](callbacks[i].arguments);
+    }
+  }
+};
 
 const createBattery = (x, y, name) => {
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -128,6 +157,16 @@ const isLevelComplete = () => {
   return batteriesDelivered === batteryArray.length;
 };
 
+const createHazard = (x, y, name, terminal) => {
+  const hazard = hazards.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'caution');
+  hazard.body.immovable = true;
+  hazard.name = name;
+
+  hazard.deactivate = false;
+  hazard.terminal = terminal; // Set terminal name that it is associated with for power
+  // hazard.callbackArray = callbackArray;
+};
+
 const createTerminal = (x, y, activator) => {
   // Set terminal image based on wether or not it is delivered.
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
@@ -139,27 +178,13 @@ const createTerminal = (x, y, activator) => {
   terminal.activator = activator;
 };
 
-const createBreaker = (x, y, activator) => {
+const createBreaker = (x, y, callbackArray) => {
 
   const breaker = breakers.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'breaker');
   breaker.body.immovable = true;
-  breaker.activator = activator;
+  breaker.callbackArray = callbackArray;
 };
 
-function preload() {
-  game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
-  game.load.image('path', 'assets/path.png');
-  game.load.image('wall', 'assets/wall.png');
-  game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
-  game.load.image('terminalOff', 'assets/terminal_off.png');
-  game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
-  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
-  game.load.spritesheet('electricMan', 'assets/electric_man.png', 42, 48);
-  game.load.image('intro', 'assets/intro_screen.png');
-
-  game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
-
-}
 
 function create() {
 
@@ -171,8 +196,6 @@ function create() {
 
   const happyMusic = game.sound.play('happy_bgm');
   happyMusic.loopFull(1);
-
-
 }
 
 const getDistance = (obj1,obj2) => {
@@ -181,24 +204,44 @@ const getDistance = (obj1,obj2) => {
   return Math.abs(Math.sqrt(a*a + b*b));
 };
 
-const isVisible = (position, playerPosition) => {
-  let playerDir = player.angle;
+const createDoor = (x, y, name) => {
+  const door = doors.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'door');
+  door.body.immovable = true;
+  door.name = name;
+};
 
-  let isHorizontal = (playerDir + 180)%180 === 0;
-  let isVertical = !isHorizontal;
-  let isInFrontOfPlayer = isHorizontal ?
-    Math.sign(position.x - playerPosition.x) === Math.sign(playerDir + 1) :
-    Math.sign(position.y - playerPosition.y) === Math.sign(playerDir);
+const interactHazard = (player, hazard) =>  {
+  if(!hazard.deactivate){
+    // Check if battery is delivered to terminal and therfore on
+    let terminalOn = playerInventory.batteries.find(t => t.name === hazard.terminal).delivered;
+    if(terminalOn){
+      console.log('Shock.');
+    }
+  }
+};
 
-  if (isInFrontOfPlayer) {
-    let dx = Math.abs(position.x - playerPosition.x);
-    let dy = Math.abs(position.y - playerPosition.y);
-    let theta = Math.atan2(dy, dx);
-    let degrees = theta * 180/Math.PI;
+const isVisible = (obj, playerPosition) => {
+  // If the object has been killed, alive will be false.  Only check objects that have been not been killed.
+  if(obj.alive){
+    let playerDir = player.angle;
 
-    let inFlashLightView = isHorizontal ?
-      degrees < 50 : degrees > 40;
-    return inFlashLightView;
+      let isHorizontal = (playerDir + 180)%180 === 0;
+      let isVertical = !isHorizontal;
+      let isInFrontOfPlayer = isHorizontal ?
+        Math.sign(obj.position.x - playerPosition.x) === Math.sign(playerDir + 1) :
+        Math.sign(obj.position.y - playerPosition.y) === Math.sign(playerDir);
+
+      if (isInFrontOfPlayer) {
+        let dx = Math.abs(obj.position.x - playerPosition.x);
+        let dy = Math.abs(obj.position.y - playerPosition.y);
+        let theta = Math.atan2(dy, dx);
+        let degrees = theta * 180/Math.PI;
+
+        let inFlashLightView = isHorizontal ?
+          degrees < PLAYER.LIGHT_HORIZONTAL : degrees > 90 - PLAYER.LIGHT_VERTICAL;// Light vertical is smalelr the larger it is by default, so invert it this way.
+        return inFlashLightView;
+      }
+      return false;
   }
   return false;
 };
@@ -206,11 +249,14 @@ const isVisible = (position, playerPosition) => {
 const hideObjects = (player) => {
   let playerPos = player.position;
 
-  paths.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  batteries.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
-  terminals.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  walls.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-  breakers.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  paths.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  batteries.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
+  terminals.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  walls.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  doors.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  hazards.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
+  breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 function update() {
@@ -222,6 +268,7 @@ function update() {
 
   if (levelComplete && currentLevel === 0) {
     currentLevel = 1;
+
     // World Manager Creating Map
     const currentUpdateFunctionName = `level${currentLevel}Update`;
     WorldManager[currentUpdateFunctionName]();
@@ -239,14 +286,43 @@ function update() {
     breakers = game.add.group();
     breakers.enableBody = true;
 
+    hazards = game.add.group();
+    hazards.enableBody = true;
+
+    doors = game.add.group();
+    doors.enableBody = true;
+
 
     /*
     Create Objects in Groups
     */
     createBattery(7, 16, "battery1");
+    // createBattery(200, 300, "battery2");
 
     createTerminal(21, 16, "battery1");
 
+    createBreaker(10, 10, [
+      {
+        'function': EventManager.deactivateHazard,
+        'target': "hazard1",
+        'targetGroup': hazards // The group of objects that contain the exact hazard
+      },
+      {
+        'function': EventManager.openDoor,
+        'target': "door1",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      },
+      {
+        'function': EventManager.openDoor,
+        'target': "door2",
+        'targetGroup': doors // The group of objects that contain the exact hazard
+      }
+    ]);
+
+    createHazard(8, 8, "hazard1", "battery1");
+
+    createDoor(20, 2, 'door1');
+    createDoor(20, 1, 'door2');
 
     /*
     Create Player
@@ -255,14 +331,15 @@ function update() {
     player.scale.setTo(2, 2);
     game.physics.arcade.enable(player);
     player.animations.add("walk", [0, 1, 2, 3], 10, true);
+
   } else if (levelComplete && currentLevel === 1){
       game.world.removeAll();
 
-      currentLevel += 1
+  //     currentLevel += 1
 
-      // World Manager Level 2 Creating Map
-      let currentUpdateFunctionName = `level${currentLevel}Update`;
-      WorldManager[currentUpdateFunctionName]();
+  //     // World Manager Level 2 Creating Map
+  //     let currentUpdateFunctionName = `level${currentLevel}Update`;
+  //     WorldManager[currentUpdateFunctionName]();
 
       batteries = game.add.group();
       batteries.enableBody = true;
@@ -279,9 +356,14 @@ function update() {
             'name': 'battery2',
             'carried': false,
             'delivered': false
+          },
+          {
+            'name': 'BATTERYTEST',
+            'carried': false,
+            'delivered': false
           }
         ]
-      }
+      };
       /*
       Create Objects in Groups
       */
@@ -300,8 +382,10 @@ function update() {
 
 
 
-  } else if (levelComplete && currentLevel === 2){
+  } else if(isLevelComplete() && currentLevel === 2){
+
       game.world.removeAll();
+      console.log(currentLevel)
 
       currentLevel += 1
   }
@@ -319,6 +403,9 @@ function update() {
     game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
     game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
     game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+    game.physics.arcade.collide(player, hazards, interactHazard, null, this);
+    game.physics.arcade.collide(player, doors, () => {
+    }, null, this);// Callback function is needed, but door doesn't need one, therfore an anonymous function.
 
 
     // Disable scroll bar when you use arrow keys, so that when you move with arrow keys the window won't move.
@@ -331,11 +418,11 @@ function update() {
     // Set player anchor to center rotation
     player.anchor.setTo(0.5, 0.5);
 
-    if (spaceBar.isDown) {
-      actionButton = true;
-    } else {
-      actionButton = false;
-    }
+    // Initialize cursor to listen to keyboard input
+    cursors = game.input.keyboard.createCursorKeys();
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+    actionButton = spaceBar.isDown;
 
     if (cursors.left.isDown) {//  Move to the left
       player.body.velocity.x = -PLAYER.SPEED;
@@ -360,5 +447,4 @@ function update() {
       player.animations.stop();
     }
   }
-
 }
