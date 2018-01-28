@@ -11,7 +11,7 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    },
+    }
   ]
 };
 
@@ -169,20 +169,19 @@ function create() {
   */
   batteries = game.add.group();
   batteries.enableBody = true;
-
+  
   terminals = game.add.group();
   terminals.enableBody = true;
-
+  
   breakers = game.add.group();
   breakers.enableBody = true;
-
-
+  
+  
   /*
   Create Objects in Groups
   */
   createBattery(7, 16, "battery1");
-  // createBattery(200, 300, "battery2");
-
+  
   createTerminal(21, 16, "battery1");
 
 
@@ -241,24 +240,59 @@ function update() {
   }
 
 
-  if(isLevelComplete()){
+  if(isLevelComplete() && currentLevel === 1){
     
-    if(currentLevel === 1){
       game.world.removeAll();
+      console.log(currentLevel)
 
       currentLevel += 1
-      console.log(currentLevel)
 
       // World Manager Level 2 Creating Map
       let currentUpdateFunctionName = `level${currentLevel}Update`;
-      console.log(currentUpdateFunctionName)
       WorldManager[currentUpdateFunctionName]();
 
+      batteries = game.add.group();
+      batteries.enableBody = true;
+      
+      terminals = game.add.group();
+      terminals.enableBody = true;
+      
+      breakers = game.add.group();
+      breakers.enableBody = true;
+      
+      playerInventory = {
+        batteries: [
+          {
+            'name': 'battery2',
+            'carried': false,
+            'delivered': false
+          }
+        ]
+      }
+      /*
+      Create Objects in Groups
+      */
+      createBattery(7, 16, "battery2");
+      
+      createTerminal(21, 16, "battery2");
+    
+    
+      /*
+      Create Player
+      */
+      player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
+      player.scale.setTo(2, 2);
+      game.physics.arcade.enable(player);
+      player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
-    }
-    // }else if(currentLevel === 3){
 
-    // }
+  
+  } else if(isLevelComplete() && currentLevel === 2){
+
+      game.world.removeAll();
+      console.log(currentLevel)
+
+      currentLevel += 1
   }
 
   /*
