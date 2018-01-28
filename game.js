@@ -24,8 +24,8 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let level = 1;
 let currentLevel = level;
-let player, cursors, spaceBar, batteries, terminals;
-let lightsOn = true;
+let player, cursors, spaceBar, batteries, terminals, doors;
+let lightsOn = false;
 
 let actionButton = false;
 
@@ -144,6 +144,7 @@ function preload() {
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  // game.load.audio('sword', 'assets/audio/SoundEffects/sword.mp3'); Audio
 }
 
 function create() {
@@ -161,6 +162,9 @@ function create() {
 
   terminals = game.add.group();
   terminals.enableBody = true;
+
+  doors = game.add.group();
+  doors.enableBody = true;
 
 
   /*
