@@ -1,0 +1,20 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+body {
+    background-color: black;
+    position: relative;
+}
+
+canvas {
+    display: block;
+    left: 50%;
+    margin: -352px 0 0 -640px;
+    padding: 0;
+    position: absolute;
+    top: 50%;
+}
