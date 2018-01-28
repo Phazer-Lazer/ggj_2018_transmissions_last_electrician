@@ -20,10 +20,19 @@ let playerInventory = {
   ]
 };
 
-const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
+let currentLevel = 0;
+let player, cursors, spaceBar, batteries, terminals, breakers;
+let holes, movables, doors, hazards;
+let lightsOn = true;
+
+let actionButton = false;
+
+
+const game = new Phaser.Game(1280, 704, Phaser.CANVAS, '', {
   preload,
   create,
   update,
+  render
 });
 
 
@@ -44,13 +53,6 @@ function preload() {
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
 }
-
-let currentLevel = 0;
-let player, cursors, spaceBar, batteries, terminals, breakers;
-let holes, movables, doors, hazards;
-let lightsOn = true;
-
-let actionButton = false;
 
 const carryObject = (name, value) => {
   let object = playerInventory.batteries.find(b => b.name === name);
@@ -278,6 +280,36 @@ const hideObjects = (player) => {
   breakers.children.forEach(element => element.visible = isVisible(element, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
+
+function render() {
+  if (currentLevel !== 0) {
+    player.body.width = 45;
+    player.body.height = 45;
+    //when facing right
+    // player.body.x = player.x - 33;
+    // player.body.y = player.y - 20;
+    //when facing left
+    // player.body.x = player.x - 10;
+    // player.body.y = player.y - 20;
+    //when facing up
+    player.body.x = player.x - 33;
+    player.body.y = player.y - 20;
+
+
+    // if(player.angle = PLAYER.DIR_RIGHT){
+    //   player.body.x = player.x - 33;
+    //   player.body.y = player.y - 20;
+    // } else if(player.angle = PLAYER.DIR_LEFT){
+    // player.body.width = 45;
+    // player.body.height = 45;
+    //   player.body.x = player.x ;
+    //   player.body.y = player.y ;
+    // }
+
+    // game.debug.body(player);
+  }
+}
+
 function update() {
   // Initialize cursor to listen to keyboard input
   cursors = game.input.keyboard.createCursorKeys();
@@ -367,11 +399,11 @@ function update() {
   } else if (levelComplete && currentLevel === 1){
       game.world.removeAll();
 
-  //     currentLevel += 1
+      currentLevel += 1;
 
-  //     // World Manager Level 2 Creating Map
-  //     let currentUpdateFunctionName = `level${currentLevel}Update`;
-  //     WorldManager[currentUpdateFunctionName]();
+      // World Manager Level 2 Creating Map
+      let currentUpdateFunctionName = `level${currentLevel}Update`;
+      WorldManager[currentUpdateFunctionName]();
 
       batteries = game.add.group();
       batteries.enableBody = true;
@@ -390,18 +422,31 @@ function update() {
             'delivered': false
           },
           {
-            'name': 'BATTERYTEST',
+            'name': 'battery3',
+            'carried': false,
+            'delivered': false
+          },
+          {
+            'name': 'battery4',
+            'carried': false,
+            'delivered': false
+          },
+          {
+            'name': 'battery5',
             'carried': false,
             'delivered': false
           }
         ]
       };
       /*
-      Create Objects in Groups
+      Create Objects in Groups Level 2
       */
-      createBattery(7, 16, "battery2");
+      createBattery(2, 15, "battery2");
+      // createBattery(18, 16, "battery3");
+      // createBattery(20, 16, "battery4");
+      // createBattery(30, 16, "battery5");
 
-      createTerminal(21, 16, "battery2");
+      createTerminal(6, 16, "battery2");
 
 
   /*
