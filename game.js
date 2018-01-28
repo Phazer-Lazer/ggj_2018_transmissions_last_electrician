@@ -131,7 +131,7 @@ const interactBreaker = (player, breaker) => {
     //check if the player has used action button on the breaker, if so turn on hazard
     let  callbacks = breaker.callbackArray;
     for(let i = 0; i < callbacks.length; i++){
-      callbacks[i]['function'](callbacks[i].arguments);
+      callbacks[i]['function'](callbacks[i].args);
     }
   }
 };
@@ -368,18 +368,33 @@ function update() {
     createBreaker(10, 10, [
       {
         'function': EventManager.deactivateHazard,
-        'target': "hazard1",
-        'targetGroup': hazards // The group of objects that contain the exact hazard
+        'args': {
+          'target': "hazard1",
+          'targetGroup': hazards // The group of objects that contain the exact hazard
+        }
       },
       {
         'function': EventManager.openDoor,
-        'target': "door1",
-        'targetGroup': doors // The group of objects that contain the exact hazard
+        'args': {
+          'target': "door1",
+          'targetGroup': doors // The group of objects that contain the exact hazard
+        }
       },
       {
         'function': EventManager.openDoor,
-        'target': "door2",
-        'targetGroup': doors // The group of objects that contain the exact hazard
+        'args': {
+          'target': "door2",
+          'targetGroup': doors // The group of objects that contain the exact hazard
+        }
+      },
+      {
+        'function': EventManager.playSound,
+        'args': {
+          'game': game,
+          'sound': "darkness",
+          'loop': false, // The group of objects that contain the exact hazard
+          'stopOtherSounds': true
+        }
       }
     ]);
 
