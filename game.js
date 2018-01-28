@@ -21,7 +21,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
   update,
 });
 
-let level = 2;
+let level = 1;
 let currentLevel = level;
 let player, cursors, spaceBar, batteries, terminals, breakers;
 let lightsOn = true;
