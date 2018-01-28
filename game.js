@@ -23,7 +23,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 
 let level = 1;
 let currentLevel = level;
-let player, cursors, batteries, terminals;
+let player, cursors, batteries, terminals, breakers;
 let lightsOn = true;
 
 const carryObject = (name, value) => {
@@ -97,6 +97,10 @@ const interactTerminal = (player, terminal) => {
 
 };
 
+const interactBreaker = (player, breaker) => {
+  //check if the player has used action button on the breaker, if so turn on hazard
+}
+
 const createBattery = (x, y, name) => {
   // const battery = batteries.create(x * TILE_WIDTH,  y * TILE_HEIGHT, 'battery');
   // battery.name = name;
@@ -131,6 +135,13 @@ const createTerminal = (x, y, activator) => {
   terminal.activator = activator;
 };
 
+const createBreaker = (x, y, activator) => {
+
+  const breaker = breakers.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'breaker');
+  breaker.body.immovable = true;
+  breaker.activator = activator;
+};
+
 function preload() {
   game.load.spritesheet('our_hero', 'assets/our_32x32_hero.png', 32, 32);
   game.load.image('path', 'assets/path.png');
@@ -138,6 +149,7 @@ function preload() {
   game.load.spritesheet('battery', 'assets/battery_glow.png', 52, 35);
   game.load.image('terminalOff', 'assets/terminal_off.png');
   game.load.spritesheet('terminalOn', 'assets/terminal_on.png', 64, 96);
+  game.load.image('breaker', 'assets/terminal_off.png', 20, 90);
 }
 
 function create() {
@@ -155,6 +167,9 @@ function create() {
 
   terminals = game.add.group();
   terminals.enableBody = true;
+
+  breakers = game.add.group();
+  breakers.enableBody = true;
 
 
   /*
@@ -211,7 +226,7 @@ const hideObjects = (player) => {
   batteries.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST  && !isCarried(element.name) && !isDelivered(element.name));
   terminals.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
   walls.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
-
+  breakers.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
 };
 
 function update() {
@@ -231,6 +246,8 @@ function update() {
   game.physics.arcade.collide(player, walls);
   game.physics.arcade.overlap(player, batteries, pickupBattery, null, this);
   game.physics.arcade.collide(player, terminals, interactTerminal, null, this);
+  game.physics.arcade.collide(player, breakers, interactBreaker, null, this);
+
 
 
 
