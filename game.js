@@ -409,6 +409,18 @@ function update() {
     breakers = game.add.group();
     breakers.enableBody = true;
 
+    movables = game.add.group();
+    movables.enableBody = true;
+
+    holes = game.add.group();
+    holes.enableBody = true;
+
+    hazards = game.add.group();
+    hazards.enableBody = true;
+
+    doors = game.add.group();
+    doors.enableBody = true;
+
     playerInventory = {
       batteries: [
         {
@@ -469,7 +481,7 @@ function update() {
     holes.children.forEach(element => element.visible = isVisible(element.position, player.position) && getDistance(element.position, player.position) < PLAYER.SIGHT_DIST);
     levelLoading = false;
   } else if (isLevelComplete() && currentLevel === 3) {
-    alert('YOU WONNERED.');
+    // alert('YOU WONNERED.');
   }
 
   if (currentLevel !== 0 && !levelLoading) {
