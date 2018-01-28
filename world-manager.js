@@ -84,7 +84,7 @@ const WorldManager = (function () {
     },
 
     level1Update() {
-      game.add.sprite(0, 0, 'floor');
+      // game.add.sprite(0, 0, 'floor');
 
       walls = game.add.group();
       walls.enableBody = true;
@@ -101,43 +101,47 @@ const WorldManager = (function () {
       this.vWall(8, 20, 15);
       this.hWall(8, 21, 15);
 
-      //builds path top left of screen
-      // for(let i =1; i < 12; i++){
-      //   this.hPath(19, 1, i );
-      // }
-      //
-      // //builds paths next to horizontal wall on left
-      // this.hPath(4, 1, 12);
-      // this.hPath(5, 15, 12);
-      //
-      // //build path bottom left
-      // for(let i =1; i < 9; i++){
-      //   this.hPath(19, 1, (i+12));
-      // }
-      //
-      // //builds path on the right
-      // for(let i =1; i < 21; i++){
-      //   this.hPath(7, 32, i );
-      // }
-      //
-      // //builds path between the two vertical walls
-      // this.vPath(4, 20, 11);
-      //
-      // //builds path above horizontal wall toward the top
-      // for(let i =0; i < 2; i++){
-      //   this.hPath(12, 20, (i + 1));
-      // }
-      // //builds path under horizontal wall toward the top
-      // for(let i =0; i < 11; i++){
-      //   this.hPath(11, 21, (i + 4));
-      // }
-      //
-      // //builds path under horizontal wall toward the bottom
-      // this.hPath(3, 29, 15);
-      //
-      // for(let i =0; i < 5; i++){
-      //   this.hPath(11, 21, i + (this.levelHeight-6));
-      // }
+      // builds path top left of screen
+      for(let i =1; i < 3; i++){
+        this.hPath(19, 1, i );
+      }
+      for(let i = 4; i < 12; i++){
+        this.hPath(19, 1, i );
+      }
+
+      //builds paths next to horizontal wall on left
+      this.hPath(4, 1, 12);
+      this.hPath(5, 15, 12);
+
+      //build path bottom left
+      for(let i =1; i < 9; i++){
+        this.hPath(19, 1, (i+12));
+      }
+
+      //builds path on the right
+      for(let i =1; i < 21; i++){
+        this.hPath(7, 32, i );
+      }
+
+      //builds path between the two vertical walls
+      this.vPath(4, 20, 11);
+
+      //builds path above horizontal wall toward the top
+      for(let i =0; i < 2; i++){
+        this.hPath(12, 20, (i + 1));
+      }
+
+      //builds path under horizontal wall toward the top
+      for(let i =0; i < 11; i++){
+        this.hPath(11, 21, (i + 4));
+      }
+
+      //builds path under horizontal wall toward the bottom
+      this.hPath(3, 29, 15);
+
+      for(let i =0; i < 5; i++){
+        this.hPath(11, 21, i + (this.levelHeight-6));
+      }
 
 
     },

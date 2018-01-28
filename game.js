@@ -71,6 +71,8 @@ function preload() {
 
 
   game.load.audio('happy_bgm', 'sounds/happy_bgm.wav');
+  game.load.audio('vox_put_battery', 'sounds/vox_put_battery.wav');
+  game.load.audio('vox_watch_out', 'sounds/vox_watch_out.wav');
   game.load.audio('darkness', 'sounds/darkness_bgm.wav');
   game.load.audio('scream', 'sounds/scream.wav');
   game.load.audio('zap', 'sounds/zap.wav');
@@ -147,6 +149,10 @@ const interactTerminal = (player, terminal) => {
       targetHazard.loadTexture('live_wire', 0);
       targetHazard.animations.add('electricity', [0, 1, 2, 3, 4, 5], 10, true);
       targetHazard.animations.play('electricity', 30, true);
+      targetHazard.x += TILE_WIDTH + (TILE_WIDTH / 2);
+      targetHazard.angle = PLAYER.DIR_DOWN;
+
+      game.sound.play('vox_watch_out');
       return;
 
     }
@@ -230,6 +236,7 @@ const createBreaker = (x, y, callbackArray) => {
   const breaker = breakers.create(x * TILE_WIDTH, y * TILE_HEIGHT, 'breaker');
   breaker.body.immovable = true;
   breaker.callbackArray = callbackArray;
+  breaker.scale.setTo(2, 2);
 };
 
 const createMovable = (x, y, activator) => {
@@ -477,7 +484,7 @@ function update() {
   //const holeY = 10;
   //createHole(12, 10);
 
-    createBreaker(24, 4, [
+    createBreaker(24, 3, [
       {
         'function': EventManager.deactivateHazard,
         'args': {
@@ -497,6 +504,28 @@ function update() {
         'args': {
           'target': "door2",
           'targetGroup': doors // The group of objects that contain the exact hazard
+        }
+      },
+      {
+        'function': () => {lightsOn = false;},
+        'args': {}
+      },
+      {
+        'function': EventManager.playSound,
+        'args': {
+          'game': game,
+          'sound': "power_off",
+          'loop': false, // The group of objects that contain the exact hazard
+          'stopOtherSounds': false
+        }
+      },
+      {
+        'function': EventManager.playSound,
+        'args': {
+          'game': game,
+          'sound': "darkness",
+          'loop': false, // The group of objects that contain the exact hazard
+          'stopOtherSounds': true
         }
       },
     ]);
@@ -535,6 +564,8 @@ function update() {
 
     const exit = exits.create(TILE_WIDTH, TILE_HEIGHT, 'exit');
     exit.immovable = true;
+
+    game.sound.play('vox_put_battery');
 
     levelLoading = false;
   } else if (levelComplete && currentLevel === 1){
