@@ -11,7 +11,7 @@ let playerInventory = {
       'name': 'battery1',
       'carried': false,
       'delivered': false
-    }
+    },
   ]
 };
 
@@ -22,7 +22,7 @@ const game = new Phaser.Game(1280, 704, Phaser.AUTO, '', {
 });
 
 let currentLevel = 0;
-let player, cursors, spaceBar, batteries, terminals, breakers;
+let player, cursors, spaceBar, batteries, terminals, doors, breakers;
 let lightsOn = true;
 
 let actionButton = false;
@@ -172,6 +172,26 @@ function create() {
   const happyMusic = game.sound.play('happy_bgm');
   happyMusic.loopFull(1);
 
+  doors = game.add.group();
+  doors.enableBody = true;
+
+
+  /*
+  Create Objects in Groups
+  */
+  createBattery(7, 16, "battery1");
+  // createBattery(200, 300, "battery2");
+
+  createTerminal(21, 16, "battery1");
+
+
+  /*
+  Create Player
+  */
+  player = game.add.sprite(5 * TILE_WIDTH, 5 * TILE_HEIGHT, 'our_hero');
+  player.scale.setTo(2, 2);
+  game.physics.arcade.enable(player);
+  player.animations.add("walk", [0, 1, 2, 3], 10, true);
 
 }
 
@@ -331,6 +351,11 @@ function update() {
     // Set player anchor to center rotation
     player.anchor.setTo(0.5, 0.5);
 
+    // Initialize cursor to listen to keyboard input
+    cursors = game.input.keyboard.createCursorKeys();
+    spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    ;
+
     if (spaceBar.isDown) {
       actionButton = true;
     } else {
@@ -360,5 +385,4 @@ function update() {
       player.animations.stop();
     }
   }
-
 }
