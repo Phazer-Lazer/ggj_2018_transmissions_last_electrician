@@ -1,5 +1,7 @@
 # Electro-King: The Electrocutioning
 
+### [Play Electo-King now!](https://phazer-lazer.github.io/ggj_2018_transmissions_last_electrician/)
+
 * GGJ 2018 Theme "Transmissions"
 
 # The Story
