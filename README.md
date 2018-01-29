@@ -10,7 +10,7 @@
 
 * Move around with the arrow keys.
 
-* Press spacebar while moving towards a terminal or breaker switch to interact with it
+* Press spacebar while moving in to a terminal or breaker switch to interact with it
     * i. e. dropping a battery in to a terminal, or pulling a switch.
     
 * Move on to the "EXIT" tile to go to the next level.
